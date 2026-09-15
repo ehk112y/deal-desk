@@ -1,0 +1,19 @@
+1. **Give the form a proper heading.** The 13px tabs currently carry the entire entrance hierarchy. Add “Workspace access” above `.dd-tabs` at **26px/32px, weight 600**, with **24px** below. Keep both existing tabs and IDs; use **14px** tab text. This is the biggest missing piece of sign-in polish.
+
+2. **Rebalance the desktop split.** Change `.dd-entrance` from **46/54 to 42/58** and increase the form’s maximum width from **340px to 360px**. Keep it vertically centered. At 1440px, the black plate currently dominates a comparatively undersized form.
+
+3. **Make the ledger geometrically intentional.** Its strength is sufficient; the conflicting rules are the problem. Match the background ruling to the index’s **40px** rows, align their horizontal lines, and reduce background-line opacity from **.06 to .035**. Retain the **152px** source column and **.10** vertical rules. Avoid doubled lines through the index.
+
+4. **Separate the wordmark group from the bottom index.** Replace the plate’s uniformly spaced, centered stack with a wordmark/copy group and an index anchored **64px above the bottom**. Keep “Deal / Desk,” use **64px/64px, −.03em tracking**, and put the description **24px** below. Shorten it to “Company news and financial statements.” The index already supplies the module and source detail.
+
+5. **Refine the form’s control rhythm.** Set entrance inputs and submit buttons to **44px high**, input text to **16px**, and horizontal input padding to **12px**. Use **8px** between labels and fields, **20px** between field groups, and **24px** before submit. Explicitly remove the forgot-password button’s resting border/background—the screenshots show an unintended faint box—while retaining its underline and keyboard focus outline.
+
+6. **Remove the generic feature-card composition.** The isolated icon → title → description stack is the strongest template-like element. Put each **20px icon beside its title**, with a **10px** gap; keep descriptions beneath. Reduce tile minimum height from **236px to 204px**, retaining **24px padding**. This gives the home a more compact tool-launcher character.
+
+7. **Treat the live figures as status text.** “3 requests · 3 done” at 26px competes with the module name. Because the JS supplies one text string, set `.dd-figure` to **18px/24px, weight 400**, retaining tabular numerals. Add `min-width:0` and allow wrapping; let the footer wrap at narrow widths so larger counts remain readable.
+
+8. **Simplify “Open” into a link affordance.** The entire tile is already an anchor, so the outlined inset control adds unnecessary visual weight. Remove `.dd-open`’s border and horizontal padding; use **14px, weight 500**, with an underline on tile hover/focus. Keep the tile’s border-color change and full-tile focus outline.
+
+9. **Align the home and owner section to one grid.** Keep the **960px** content container; align the desktop topbar’s inner content with its usable edges—**x=264 and x=1176 at 1440px**. Make `.dd-acl` exactly one tile-column wide—**444px** here—and its form full width, replacing the current competing **560px/420px** widths. Use **44px rows** and a **48px** section gap. Preserve the remaining whitespace; extra dashboard content would dilute this entrance.
+
+10. **Finish the responsive and dark details.** Below **900px**, explicitly set `.dd-plate { background-image:none; }`: the mobile screenshot still shows ruling despite the comment promising its removal. Keep the form capped at **360px** on tablets, use **32px** top padding at 400px, and reduce mobile tile gaps to **16px**. In dark mode, retain the visible **10% lifted surface**, reduce general muted text from **82% to 70% Sand Dune**, and raise plate source labels from **58% to 70%** for readability. Dark-home assessment is based on CSS; no dark-home screenshot was supplied.
