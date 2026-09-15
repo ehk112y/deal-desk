@@ -142,13 +142,18 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
 .dd-eyebrow { flex:none; font-size:12px; letter-spacing:.01em;
   font-variant-numeric:tabular-nums; color:var(--dd-muted); }
 .dd-plate .dd-eyebrow { color:color-mix(in srgb,#E3DCC2 55%,#1B2021); }
-/* three 40px ledger rows of desk scene; 160px above the index keeps the ruling locked */
-.dd-scene { display:block; flex:none; width:480px; height:120px; margin:112px 0 0; }
-.dd-scene .turn { visibility:hidden; transform-box:view-box; }
+/* the scene lives in one ledger cell: the description column of the "standing by" row */
+.dd-note-label { flex:1 1 auto; min-width:0; padding-right:12px; }
+.dd-note-cell { flex:none; align-self:stretch; display:flex; align-items:flex-end;
+  width:var(--dd-col); padding-left:13px; box-sizing:border-box; }
+.dd-scene { display:block; width:144px; height:36px; margin-bottom:-2px; }
+.dd-scene :is(.turn,.alert) { visibility:hidden; transform-box:view-box; }
 .dd-scene .i1 .turn { transform-origin:120px 40px; }
 .dd-scene .i2 .turn { transform-origin:360px 40px; }
+.dd-scene .i1 .alert { transform-origin:154.5px 15px; }
+.dd-scene .i2 .alert { transform-origin:408.5px 15px; }
 /* its own 40px ledger row directly above the index, so the ruling stays phase-locked */
-.dd-index-note { display:flex; align-items:center; height:40px; margin:0;
+.dd-index-note { display:flex; align-items:center; height:40px; margin:112px 0 0;
   letter-spacing:.04em; }
 .dd-index dd { flex:none; width:var(--dd-col); margin:0; padding-left:13px; box-sizing:border-box;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -241,7 +246,6 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
   .dd-rule-v { transform-origin:center top; animation:dd-draw-y 360ms cubic-bezier(.22,.61,.36,1) 40ms both; }
   .dd-wordmark { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 40ms both; }
   .dd-plate-line { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 80ms both; }
-  .dd-scene { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 80ms both; }
   .dd-index-note { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 100ms both; }
   .dd-index > div:nth-child(1) { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 120ms both; }
   .dd-index > div:nth-child(2) { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 160ms both; }
@@ -332,76 +336,88 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
       <h1 class="dd-wordmark">Bankers’ Toolkit</h1>
       <p class="dd-plate-line">A bunch of interns working below minimum wage. Legally.</p>
     </div>
-    <svg class="dd-scene" width="480" height="120" viewBox="0 0 480 120" aria-hidden="true">
-      <g stroke="#E3DC95" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round" fill="none">
-          <path d="M46 92 H194"/>
-          <path d="M54 92 V114 M186 92 V114"/>
-          <rect x="152" y="80" width="34" height="9" rx="2"/>
-          <rect x="156" y="73" width="26" height="7" rx="2"/>
-        </g>
+    <p class="dd-index-note dd-eyebrow">
+      <span class="dd-note-label">2 interns standing by</span>
+      <span class="dd-note-cell">
+        <svg class="dd-scene" width="144" height="36" viewBox="0 0 480 120" aria-hidden="true">
         <g stroke="#E3DC95" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round" fill="none">
-          <path d="M286 92 H434"/>
-          <path d="M294 92 V114 M426 92 V114"/>
-          <rect x="390" y="60" width="38" height="26" rx="3"/>
-          <path d="M409 86 V91 M400 92 H418"/>
+            <path d="M46 92 H194"/>
+            <path d="M54 92 V114 M186 92 V114"/>
+            <rect x="152" y="80" width="34" height="9" rx="2"/>
+            <rect x="156" y="73" width="26" height="7" rx="2"/>
+          </g>
+          <g stroke="#E3DC95" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round" fill="none">
+            <path d="M286 92 H434"/>
+            <path d="M294 92 V114 M426 92 V114"/>
+            <rect x="390" y="60" width="38" height="26" rx="3"/>
+            <path d="M409 86 V91 M400 92 H418"/>
+          </g>
+          <g class="i1">
+        <g class="alert" visibility="hidden">
+          <rect x="150" y="2" width="9" height="17" rx="4.5" fill="#E3DC95"/>
+          <circle cx="154.5" cy="25" r="4.5" fill="#E3DC95"/>
         </g>
-        <g class="i1">
-          <g class="back">
-          <rect x="86" y="50" width="10" height="42" rx="5" fill="#98341B" transform="rotate(-10 91 56)"/><rect x="144" y="50" width="10" height="42" rx="5" fill="#98341B" transform="rotate(10 149 56)"/>
-          <path d="M120 36 V26" stroke="#98341B" stroke-width="3" stroke-linecap="round" fill="none"/>
-            <rect x="113.5" y="8" width="13" height="18" rx="6.5" fill="none" stroke="#98341B" stroke-width="3"/>
-            <rect x="118" y="12.5" width="4" height="9" rx="2" fill="#98341B"/>
-          <rect x="93" y="32" width="54" height="54" rx="12" fill="#E8927C" stroke="#98341B" stroke-width="3"/>
-          <rect x="97" y="40" width="46" height="5" rx="2.5" fill="#98341B"/>
-          <rect x="97" y="49" width="46" height="3" rx="1.5" fill="#EBC9C0"/>
-          <path d="M103 64 H137" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
-          <path d="M120 68 V80" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
-        </g>
-          <g class="turn" visibility="hidden">
-          <rect x="86" y="50" width="10" height="42" rx="5" fill="#98341B" transform="rotate(4 91 56)"/><rect x="144" y="50" width="10" height="42" rx="5" fill="#98341B" transform="rotate(10 149 56)"/>
-          <g transform="rotate(-7 120 62) translate(-4 -3)">
+            <g class="back">
+            <rect x="86" y="50" width="10" height="42" rx="5" fill="#98341B" transform="rotate(-10 91 56)"/><rect x="144" y="50" width="10" height="42" rx="5" fill="#98341B" transform="rotate(10 149 56)"/>
             <path d="M120 36 V26" stroke="#98341B" stroke-width="3" stroke-linecap="round" fill="none"/>
-            <rect x="113.5" y="8" width="13" height="18" rx="6.5" fill="none" stroke="#98341B" stroke-width="3"/>
-            <rect x="118" y="12.5" width="4" height="9" rx="2" fill="#98341B"/>
+              <rect x="113.5" y="8" width="13" height="18" rx="6.5" fill="none" stroke="#98341B" stroke-width="3"/>
+              <rect x="118" y="12.5" width="4" height="9" rx="2" fill="#98341B"/>
             <rect x="93" y="32" width="54" height="54" rx="12" fill="#E8927C" stroke="#98341B" stroke-width="3"/>
-            <rect x="122" y="40" width="21" height="5" rx="2.5" fill="#98341B"/>
-            <rect x="122" y="49" width="21" height="3" rx="1.5" fill="#EBC9C0"/>
-            <circle cx="105" cy="56" r="5" fill="#98341B"/>
-            <circle cx="118" cy="56" r="5" fill="#98341B"/>
-            <path d="M126 72 H140" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <rect x="97" y="40" width="46" height="5" rx="2.5" fill="#98341B"/>
+            <rect x="97" y="49" width="46" height="3" rx="1.5" fill="#EBC9C0"/>
+            <path d="M103 64 H137" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <path d="M120 68 V80" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
           </g>
-        </g>
-        </g>
-        <g class="i2">
-          <g class="back">
-          <rect x="326" y="50" width="10" height="42" rx="5" fill="#256F27" transform="rotate(-10 331 56)"/><rect x="384" y="50" width="10" height="42" rx="5" fill="#256F27" transform="rotate(10 389 56)"/>
-          <g transform="rotate(32 380 30)">
-            <rect x="375" y="6" width="10" height="24" rx="2" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
-            <path d="M375 30 L380 39 L385 30 Z" fill="#256F27"/>
-            <rect x="375" y="15" width="10" height="3" fill="#256F27"/>
+            <g class="turn" visibility="hidden">
+            <rect x="86" y="50" width="10" height="42" rx="5" fill="#98341B" transform="rotate(4 91 56)"/><rect x="144" y="50" width="10" height="42" rx="5" fill="#98341B" transform="rotate(10 149 56)"/>
+            <g transform="rotate(-7 120 62) translate(-4 -3)">
+              <path d="M120 36 V26" stroke="#98341B" stroke-width="3" stroke-linecap="round" fill="none"/>
+              <rect x="113.5" y="8" width="13" height="18" rx="6.5" fill="none" stroke="#98341B" stroke-width="3"/>
+              <rect x="118" y="12.5" width="4" height="9" rx="2" fill="#98341B"/>
+              <rect x="93" y="32" width="54" height="54" rx="12" fill="#E8927C" stroke="#98341B" stroke-width="3"/>
+              <rect x="122" y="40" width="21" height="5" rx="2.5" fill="#98341B"/>
+              <rect x="122" y="49" width="21" height="3" rx="1.5" fill="#EBC9C0"/>
+              <circle cx="105" cy="56" r="5" fill="#98341B"/>
+              <circle cx="118" cy="56" r="5" fill="#98341B"/>
+              <path d="M126 72 H140" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+            </g>
           </g>
-          <rect x="333" y="32" width="54" height="54" rx="12" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
-          <path d="M336 60 H384" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
-          <path d="M360 64 V80" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+          </g>
+          <g class="i2">
+        <g class="alert" visibility="hidden">
+          <rect x="404" y="2" width="9" height="17" rx="4.5" fill="#E3DC95"/>
+          <circle cx="408.5" cy="25" r="4.5" fill="#E3DC95"/>
         </g>
-          <g class="turn" visibility="hidden">
-          <rect x="326" y="50" width="10" height="42" rx="5" fill="#256F27" transform="rotate(4 331 56)"/><rect x="384" y="50" width="10" height="42" rx="5" fill="#256F27" transform="rotate(10 389 56)"/>
-          <g transform="rotate(-7 360 62) translate(-4 -3)">
+            <g class="back">
+            <rect x="326" y="50" width="10" height="42" rx="5" fill="#256F27" transform="rotate(-10 331 56)"/><rect x="384" y="50" width="10" height="42" rx="5" fill="#256F27" transform="rotate(10 389 56)"/>
             <g transform="rotate(32 380 30)">
-            <rect x="375" y="6" width="10" height="24" rx="2" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
-            <path d="M375 30 L380 39 L385 30 Z" fill="#256F27"/>
-            <rect x="375" y="15" width="10" height="3" fill="#256F27"/>
-          </g>
+              <rect x="375" y="6" width="10" height="24" rx="2" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
+              <path d="M375 30 L380 39 L385 30 Z" fill="#256F27"/>
+              <rect x="375" y="15" width="10" height="3" fill="#256F27"/>
+            </g>
             <rect x="333" y="32" width="54" height="54" rx="12" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
-            <circle cx="345" cy="56" r="5" fill="#256F27"/>
-            <circle cx="358" cy="56" r="5" fill="#256F27"/>
-            <path d="M362 70 H382" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
-            <path d="M372 70 V80" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <path d="M336 60 H384" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <path d="M360 64 V80" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
           </g>
-        </g>
-        </g>
-    </svg>
-    <p class="dd-index-note dd-eyebrow">2 interns standing by</p>
+            <g class="turn" visibility="hidden">
+            <rect x="326" y="50" width="10" height="42" rx="5" fill="#256F27" transform="rotate(4 331 56)"/><rect x="384" y="50" width="10" height="42" rx="5" fill="#256F27" transform="rotate(10 389 56)"/>
+            <g transform="rotate(-7 360 62) translate(-4 -3)">
+              <g transform="rotate(32 380 30)">
+              <rect x="375" y="6" width="10" height="24" rx="2" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
+              <path d="M375 30 L380 39 L385 30 Z" fill="#256F27"/>
+              <rect x="375" y="15" width="10" height="3" fill="#256F27"/>
+            </g>
+              <rect x="333" y="32" width="54" height="54" rx="12" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
+              <circle cx="345" cy="56" r="5" fill="#256F27"/>
+              <circle cx="358" cy="56" r="5" fill="#256F27"/>
+              <path d="M362 70 H382" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+              <path d="M372 70 V80" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+            </g>
+          </g>
+          </g>
+        </svg>
+      </span>
+    </p>
     <dl class="dd-index">
       <div>
         <dt>
@@ -805,55 +821,42 @@ if (demo) {
     setTimeout(() => html.classList.remove('bt-anim'), 1300);
   }).observe(main, { attributes: true, attributeFilter: ['class'] });
 
-  /* Desk scene: every 5s one intern glances back, alternating. Catch them at it and they
-     snap forward with a jolt, then keep their head down for twice as long. */
+  /* Desk scene: every 5s one intern turns round slowly, catches your eye ("!"), and
+     snaps back to work. No pointer input — it just happens while you read. */
   const scene = document.querySelector('.dd-scene');
   if (scene) {
     const crew = [scene.querySelector('.i1'), scene.querySelector('.i2')];
-    const EASE = 'cubic-bezier(.22,1,.36,1)';
-    let over = false, turn$ = 0, timer = null;
-    plate.addEventListener('pointerenter', () => { over = true; });
-    plate.addEventListener('pointerleave', () => { over = false; });
+    let who = 0, timer = null;
+    const show = (el, on) => { el.style.visibility = on ? 'visible' : 'hidden'; };
 
-    const glance = g => new Promise(resolve => {
-      const back = g.querySelector('.back'), turn = g.querySelector('.turn');
-      let hold = null, done = false;
-      back.style.visibility = 'hidden';
-      turn.style.visibility = 'visible';
+    const glance = g => {
+      const back = g.querySelector('.back'), turn = g.querySelector('.turn'), bang = g.querySelector('.alert');
+      show(back, false); show(turn, true);
       turn.animate([{ transform: 'rotate(-12deg)' }, { transform: 'rotate(0deg)' }],
-        { duration: 350, easing: EASE, fill: 'forwards' });
-      const stop = () => {
-        clearTimeout(hold);
-        plate.removeEventListener('pointermove', caught);
-        plate.removeEventListener('pointerenter', caught);
-        removeEventListener('focus', caught);
-      };
-      const back_ = (ms, jolt) => {
-        if (done) return; done = true; stop();
-        if (jolt) g.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(2px)' },
-          { transform: 'translateX(-2px)' }, { transform: 'translateX(0)' }], { duration: ms });
+        { duration: 1200, easing: 'ease-in-out', fill: 'forwards' });
+      setTimeout(() => {                                   // eyes meet
+        show(bang, true);
+        bang.animate([{ transform: 'scale(.3)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }],
+          { duration: 150, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'forwards' });
+      }, 1200);
+      setTimeout(() => {                                   // caught — back to work
+        show(bang, false);
+        bang.getAnimations().forEach(a => a.cancel());
+        g.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(2px)' },
+          { transform: 'translateX(-2px)' }, { transform: 'translateX(0)' }], { duration: 120 });
         const a = turn.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(-12deg)' }],
-          { duration: ms, easing: 'ease-in', fill: 'forwards' });
+          { duration: 120, easing: 'ease-in', fill: 'forwards' });
         a.onfinish = () => {
-          turn.style.visibility = 'hidden';
-          back.style.visibility = 'visible';
+          show(turn, false); show(back, true);
           turn.getAnimations().forEach(x => x.cancel());
-          resolve(jolt);
         };
-      };
-      const caught = () => back_(120, true);            // "caught looking"
-      if (over) { setTimeout(caught, 350); return; }
-      plate.addEventListener('pointermove', caught);
-      plate.addEventListener('pointerenter', caught);
-      addEventListener('focus', caught);
-      hold = setTimeout(() => back_(400, false), 1050); // 350 in + 700 hold
-    });
+      }, 1700);
+    };
 
     const next = ms => { clearTimeout(timer); timer = setTimeout(run, ms); };
-    async function run() {
-      if (document.hidden) return next(5000);
-      const jolt = await glance(crew[turn$++ % 2]);
-      next(jolt ? 10000 : 5000);                        // skip a turn after being caught
+    function run() {
+      if (!document.hidden) glance(crew[who++ % 2]);
+      next(5000);
     }
     document.addEventListener('visibilitychange', () => document.hidden ? clearTimeout(timer) : next(5000));
     next(5000);
