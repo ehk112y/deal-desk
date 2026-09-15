@@ -129,7 +129,7 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
 /* one line at 1440; it wraps rather than shrinking when the plate narrows */
 .dd-plate-line { margin:0; max-width:56ch; font-size:15px; line-height:24px;
   color:color-mix(in srgb,#E3DCC2 76%,#1B2021); }
-.dd-index { margin:112px 0 0; position:relative;
+.dd-index { margin:0; position:relative;
   display:flex; flex-direction:column; font-size:13px; line-height:20px; }
 .dd-index > div { display:flex; align-items:center; height:40px;
   border-top:1px solid rgba(227,220,194,.14); }
@@ -142,6 +142,9 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
 .dd-eyebrow { flex:none; font-size:12px; letter-spacing:.01em;
   font-variant-numeric:tabular-nums; color:var(--dd-muted); }
 .dd-plate .dd-eyebrow { color:color-mix(in srgb,#E3DCC2 55%,#1B2021); }
+/* its own 40px ledger row directly above the index, so the ruling stays phase-locked */
+.dd-index-note { display:flex; align-items:center; height:40px; margin:112px 0 0;
+  letter-spacing:.04em; }
 .dd-index dd { flex:none; width:var(--dd-col); margin:0; padding-left:13px; box-sizing:border-box;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   color:color-mix(in srgb,#E3DCC2 70%,#1B2021); }
@@ -234,6 +237,7 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
   .dd-rule-v { transform-origin:center top; animation:dd-draw-y 360ms cubic-bezier(.22,.61,.36,1) 40ms both; }
   .dd-wordmark { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 40ms both; }
   .dd-plate-line { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 80ms both; }
+  .dd-index-note { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 100ms both; }
   .dd-index > div:nth-child(1) { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 120ms both; }
   .dd-index > div:nth-child(2) { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 160ms both; }
   .dd-spark { transition:opacity 180ms linear; }
@@ -252,7 +256,7 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
   .dd-entrance { grid-template-columns:minmax(0,1fr); grid-template-rows:auto 1fr; }
   .dd-plate { flex-direction:row; align-items:center; justify-content:flex-start; gap:0; height:64px;
     padding:0 64px 0 20px; border-right:0; border-bottom:1px solid #51513D; }
-  .dd-rule-v,.dd-spark,.dd-plate-line,.dd-index { display:none; }
+  .dd-rule-v,.dd-spark,.dd-plate-line,.dd-index-note,.dd-index { display:none; }
   .dd-wordmark { font-size:20px; line-height:24px; letter-spacing:-.02em; white-space:nowrap; }
   .dd-entry { align-items:flex-start; padding:48px 20px 40px; }
   .dd-entry > section { max-width:360px; }
@@ -321,6 +325,7 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
       <h1 class="dd-wordmark">Bankers’ Toolkit</h1>
       <p class="dd-plate-line">A bunch of interns working below minimum wage. Legally.</p>
     </div>
+    <p class="dd-index-note dd-eyebrow">2 interns standing by</p>
     <dl class="dd-index">
       <div>
         <dt>
