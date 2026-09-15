@@ -28,6 +28,8 @@
   --dd-border:#E3DCC2; --dd-muted:#51513D;
   --dd-work:color-mix(in srgb,#E3DCC2 36%,#FFFFFF);
   --dd-hover:color-mix(in srgb,#E3DCC2 55%,#FFFFFF);
+  /* the raised surface: the sign-in panel and the module tiles */
+  --dd-lift:#FFFFFF;
   --radius-box:4px; --radius-field:2px; --radius-selector:2px;
   --size-field:.25rem; --size-selector:.25rem;
   --border:1px; --depth:0; --noise:0;
@@ -46,9 +48,11 @@
   --color-warning:#E3DC95; --color-warning-content:#1B2021;
   --color-error:#E3DC95; --color-error-content:#1B2021;
   --dd-border:#51513D;
-  --dd-muted:color-mix(in srgb,#E3DCC2 82%,#1B2021);
+  --dd-muted:color-mix(in srgb,#E3DCC2 70%,#1B2021);
   --dd-work:color-mix(in srgb,#1B2021 92%,#E3DCC2);
   --dd-hover:color-mix(in srgb,#51513D 45%,#1B2021);
+  /* the brand plate stays Carbon Black, so in dark the surfaces step up instead of down */
+  --dd-lift:color-mix(in srgb,#1B2021 90%,#E3DCC2);
   --radius-box:4px; --radius-field:2px; --radius-selector:2px;
   --size-field:.25rem; --size-selector:.25rem;
   --border:1px; --depth:0; --noise:0;
@@ -60,11 +64,8 @@ body {
   color:var(--color-base-content); background:var(--color-base-200);
 }
 label { font-weight:500; }
-.dd-title { font-size:15px; font-weight:600; line-height:24px; letter-spacing:-.015em; }
-.dd-page-title { font-size:20px; font-weight:600; line-height:24px; letter-spacing:-.025em; }
 .dd-muted { opacity:1; color:var(--dd-muted); }
-.dd-meta { font-size:13px; }
-button,a,input { transition:opacity 120ms linear,background-color 120ms linear; }
+button,a,input { transition:opacity 120ms linear,background-color 120ms linear,border-color 120ms linear; }
 .btn { font-family:inherit; font-size:13px; font-weight:500; border-radius:2px;
   box-shadow:none; text-transform:none; height:36px; min-height:36px; padding-inline:12px;
   transition:opacity 120ms linear,background-color 120ms linear; }
@@ -77,64 +78,147 @@ button,a,input { transition:opacity 120ms linear,background-color 120ms linear; 
 :is(button,a,input):focus-visible { outline:2px solid var(--color-primary); outline-offset:2px; }
 .btn:disabled,.input:disabled { opacity:.5; }
 
-.dd-topbar { position:sticky; top:0; z-index:20; display:flex; align-items:center;
-  justify-content:flex-end; gap:8px; height:56px; padding:0 24px;
-  background:var(--color-base-100); border-bottom:1px solid var(--dd-border); }
-#nav-brand { flex:1 1 auto; min-width:0; }
-#theme-btn { border-left:1px solid var(--dd-border); border-radius:0; margin-left:8px; }
-.dd-content { max-width:1400px; width:100%; margin:0 auto; padding:24px; box-sizing:border-box; }
-.dd-card { background:var(--color-base-100); border:1px solid var(--dd-border); border-radius:4px; box-shadow:none; }
-.dd-card-body { display:flex; flex-direction:column; gap:8px; padding:16px; }
-.dd-center:not(.hidden) { min-height:calc(100vh - 56px); display:flex; align-items:center;
-  justify-content:center; padding:24px; box-sizing:border-box; }
+/* Header. On the entrance only the theme toggle floats; on the desk it becomes the brand strip. */
+.dd-topbar { position:fixed; top:0; right:0; z-index:30; display:flex; align-items:center;
+  gap:8px; height:56px; padding:0 16px; }
+.dd-topbar .btn { background:transparent; }
+#theme-btn { border-radius:2px; }
+#nav-brand { flex:1 1 auto; min-width:0; font-size:20px; font-weight:600;
+  line-height:24px; letter-spacing:-.02em; color:#E3DC95; }
+#nav-email { color:color-mix(in srgb,#E3DCC2 70%,#1B2021); max-width:240px; }
+body:has(#scr-main:not(.hidden)) .dd-topbar {
+  position:sticky; right:auto; width:100%; box-sizing:border-box;
+  /* full-bleed ground, inner content on the same edges as the 960px content column */
+  padding:0 max(24px,calc((100% - 960px) / 2 + 24px));
+  background:#1B2021; color:#E3DCC2; border-bottom:1px solid #51513D; }
+body:has(#scr-main:not(.hidden)) .dd-topbar .btn { color:#E3DCC2; }
+body:has(#scr-main:not(.hidden)) .dd-topbar .btn:hover { background:#51513D; }
+body:has(#scr-main:not(.hidden)) .dd-topbar :is(button,a):focus-visible { outline-color:#E3DC95; }
+body:has(#scr-main:not(.hidden)) #theme-btn {
+  border-left:1px solid #51513D; border-radius:0; margin-left:8px; }
+
+/* The entrance: a ruled brand plate beside the form. Shown only while a form is on screen. */
+.dd-entrance { display:none; grid-template-columns:42fr 58fr; min-height:100vh; }
+.dd-entrance:has(> .dd-entry > section:not(.hidden)) { display:grid; }
+
+.dd-plate { position:relative; overflow:hidden; box-sizing:border-box;
+  display:flex; flex-direction:column; justify-content:center; padding:64px;
+  background-color:#1B2021; color:#E3DCC2; border-right:1px solid #51513D;
+  /* the pad's ruling: same 40px pitch as the index, phase-locked so a rule lands on each
+     index border (bottom 24px + 40px image = a line 64px above the plate's bottom edge) */
+  background-image:linear-gradient(to bottom,rgba(227,220,194,.035) 0 1px,transparent 1px);
+  background-size:100% 40px; background-position:left 0 bottom 24px; }
+/* the source column of a columnar pad, ruled top to bottom */
+.dd-plate::after { content:""; position:absolute; inset:0 64px 0 auto; width:152px;
+  border-left:1px solid rgba(227,220,194,.10); border-right:1px solid rgba(227,220,194,.10);
+  pointer-events:none; }
+.dd-plate-head { display:flex; flex-direction:column; gap:24px; }
+.dd-wordmark { margin:0; font-size:64px; line-height:64px; font-weight:600;
+  letter-spacing:-.03em; color:#E3DC95; white-space:pre-line; }
+.dd-plate-line { margin:0; max-width:30ch; font-size:15px; line-height:1.6;
+  color:color-mix(in srgb,#E3DCC2 76%,#1B2021); }
+.dd-index { margin:0; position:absolute; left:64px; right:64px; bottom:64px;
+  display:flex; flex-direction:column; }
+.dd-index > div { display:flex; align-items:center; height:40px;
+  border-top:1px solid rgba(227,220,194,.14); }
+.dd-index > div:last-child { border-bottom:1px solid rgba(227,220,194,.14); }
+.dd-index dt { flex:1 1 auto; min-width:0; padding-right:12px; font-weight:500;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dd-index dd { flex:none; width:152px; margin:0; padding-left:13px; box-sizing:border-box;
+  color:color-mix(in srgb,#E3DCC2 70%,#1B2021); }
+
+.dd-entry { display:flex; align-items:center; justify-content:center; box-sizing:border-box;
+  padding:64px 40px; background:var(--dd-lift); }
+.dd-entry > section { width:100%; max-width:360px; }
+.dd-entry .input,.dd-entry .btn-primary { height:44px; min-height:44px; }
+.dd-entry .input { font-size:16px; padding-inline:12px; }
+.dd-entry h2 { margin:0 0 24px; font-size:26px; line-height:32px; font-weight:600;
+  letter-spacing:-.02em; }
 
 /* Sign in / Create account: one form, a segmented switch above it. */
-.dd-tabs { display:flex; border-bottom:1px solid var(--dd-border); }
-.dd-tabs .btn { flex:1; background:transparent; border:0; border-bottom:2px solid transparent;
-  border-radius:0; color:var(--dd-muted); font-weight:400; padding-inline:4px; }
-.dd-tabs .btn:hover { background:var(--dd-hover); }
+.dd-tabs { display:flex; border-bottom:1px solid var(--dd-border); margin-bottom:16px; }
+.dd-tabs .btn { flex:1; height:40px; min-height:40px; background:transparent; border:0;
+  border-bottom:2px solid transparent; border-radius:0; color:var(--dd-muted);
+  font-size:14px; font-weight:400; padding-inline:4px; }
+.dd-tabs .btn:hover { background:var(--dd-work); }
 .dd-tabs .btn[aria-selected="true"] { color:var(--color-base-content); font-weight:600;
   border-bottom-color:var(--color-primary); }
 #au-form,#pw-form { display:flex; flex-direction:column; gap:8px; margin:0; }
-#au-form > label,#pw-form > label { color:var(--dd-muted); }
-#au-submit,#pw-form .btn-primary { margin-top:8px; }
-#au-forgot { align-self:flex-start; height:24px; min-height:24px; padding-inline:0;
-  background:transparent; color:var(--dd-muted); font-weight:400;
+/* the 8px flex gap carries label -> field; the margins top it up to 20px between
+   groups and 24px before the submit. */
+#au-form > label,#pw-form > label { color:var(--dd-muted); margin-top:12px; }
+#au-form > label:first-of-type,#pw-form > label:first-of-type { margin-top:0; }
+#au-submit,#pw-form .btn-primary { margin-top:16px; }
+#au-forgot { align-self:flex-start; height:24px; min-height:24px; padding:0; margin-top:4px;
+  border:0; box-shadow:none; background:transparent; color:var(--dd-muted); font-weight:400;
   text-decoration:underline; text-underline-offset:3px; }
 #au-forgot:hover { color:var(--color-base-content); }
+:is(#au-msg,#pw-msg,#acl-msg):not(.hidden) { margin:12px 0 0; padding:6px 0 6px 12px;
+  border-left:2px solid var(--dd-border); }
+:is(#au-msg,#pw-msg,#acl-msg).dd-err { color:var(--color-error); border-left-color:var(--color-primary); }
 .dd-err { color:var(--color-error); }
 
-/* The desk: one rule per module, no card inside a card. */
-.dd-module { display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
-  min-height:36px; padding:12px 0; border-top:1px solid var(--dd-border); }
-.dd-module:last-of-type { border-bottom:1px solid var(--dd-border); }
-.dd-module > div { min-width:0; }
-.dd-module .dd-title { display:flex; align-items:center; gap:8px; }
-.dd-module .dd-title svg { flex:none; color:var(--dd-muted); }
-/* The page sits on base-200, where daisyUI's default .btn surface disappears. */
-:is(.dd-module,.dd-acl) .btn { flex:none; min-width:72px; background:transparent;
-  border:1px solid var(--color-primary); color:var(--color-base-content); }
-:is(.dd-module,.dd-acl) .btn:hover { background:var(--dd-hover); }
+/* The desk: two tiles, then the owner's access list. */
+.dd-content { max-width:960px; width:100%; margin:0 auto; padding:48px 24px 64px; box-sizing:border-box; }
+.dd-tiles { display:grid; gap:24px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.dd-tile { display:flex; flex-direction:column; gap:8px; min-height:204px; padding:24px;
+  box-sizing:border-box; text-decoration:none; color:inherit; background:var(--dd-lift);
+  border:1px solid var(--dd-border); border-radius:4px; }
+.dd-tile:hover { background:var(--dd-work); border-color:var(--color-primary); }
+.dd-tile-head { display:flex; align-items:center; gap:10px; }
+.dd-tile-head svg { flex:none; color:var(--dd-muted); }
+.dd-tile h2 { margin:0; font-size:20px; font-weight:600; line-height:1.2; letter-spacing:-.02em; }
+.dd-tile p { margin:0; max-width:34ch; color:var(--dd-muted); }
+.dd-tile-foot { margin-top:auto; padding-top:16px; display:flex; flex-wrap:wrap;
+  align-items:flex-end; justify-content:space-between; gap:8px 16px;
+  border-top:1px solid var(--dd-border); }
+.dd-figure { min-width:0; min-height:24px; font-size:18px; line-height:24px; font-weight:400;
+  font-variant-numeric:tabular-nums; }
+.dd-open { flex:none; font-size:14px; font-weight:500; line-height:24px; text-underline-offset:3px; }
+.dd-tile:hover .dd-open,.dd-tile:focus-visible .dd-open { text-decoration:underline; }
 
-/* Access list: owner only, same register look as the module rows. */
-.dd-acl { margin-top:24px; }
-.dd-acl h2 { margin:0; }
-.dd-acl form { display:flex; gap:8px; max-width:420px; margin:8px 0 16px; }
+/* one tile column wide, so the desk reads as a single grid */
+.dd-acl { margin-top:48px; max-width:444px; }
+.dd-acl h2 { margin:0; font-size:20px; font-weight:600; line-height:1.2; letter-spacing:-.02em; }
+.dd-acl > p { margin:4px 0 0; color:var(--dd-muted); }
+.dd-acl form { display:flex; gap:8px; width:100%; margin:16px 0 20px; }
+.dd-acl form .input { flex:1 1 auto; min-width:0; }
+.dd-acl form .btn { flex:none; background:transparent;
+  border:1px solid var(--color-primary); color:var(--color-base-content); }
+.dd-acl form .btn:hover { background:var(--dd-work); }
 .dd-acl-row { display:flex; align-items:center; justify-content:space-between; gap:8px;
-  min-height:36px; padding:4px 0; border-top:1px solid var(--dd-border); }
+  min-height:44px; border-top:1px solid var(--dd-border); }
 .dd-acl-row:last-child { border-bottom:1px solid var(--dd-border); }
 .dd-acl-row > span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .dd-acl-x { flex:none; width:24px; height:24px; padding:0; border:0; border-radius:2px;
   background:transparent; color:var(--dd-muted); font-size:13px; line-height:24px; cursor:pointer;
   transition:opacity 120ms linear,background-color 120ms linear; }
 .dd-acl-x:hover { background:var(--dd-hover); color:var(--color-base-content); }
-#acl-msg:not(.hidden) { padding-top:8px; }
 
+@media (max-width:899px) {
+  /* the plate collapses to a slim header; its ruling goes with it */
+  .dd-entrance { grid-template-columns:minmax(0,1fr); grid-template-rows:auto 1fr; }
+  .dd-plate { flex-direction:row; align-items:center; justify-content:flex-start; gap:0; height:64px;
+    padding:0 64px 0 20px; border-right:0; border-bottom:1px solid #51513D;
+    background-image:none; }
+  .dd-plate::after,.dd-plate-line,.dd-index { display:none; }
+  .dd-wordmark { font-size:20px; line-height:24px; letter-spacing:-.02em; white-space:normal; }
+  .dd-entry { align-items:flex-start; padding:48px 20px 40px; }
+  .dd-entry > section { max-width:360px; }
+  .dd-topbar { padding:0 8px; }
+  body:has(.dd-entry > section:not(.hidden)) #theme-btn { color:#E3DCC2; }
+}
+@media (max-width:719px) {
+  .dd-tiles { grid-template-columns:minmax(0,1fr); gap:16px; }
+  .dd-content { padding:24px 16px 48px; }
+}
 @media (max-width:480px) {
+  .dd-entry { padding-top:32px; }
+  body:has(#scr-main:not(.hidden)) .dd-topbar { padding:0 12px; }
   .dd-topbar #theme-btn,.dd-topbar .logout-btn { min-width:40px; min-height:40px; padding-inline:8px; }
 }
 @media (pointer:coarse) { .dd-acl-x { width:40px; height:40px; line-height:40px; } }
-@media (prefers-reduced-motion:reduce) { button,a,input,.btn { transition:none; } }
+@media (prefers-reduced-motion:reduce) { button,a,input,.btn,.dd-open { transition:none; } }
 </style>
 </head>
 <body class="min-h-screen">
@@ -157,8 +241,8 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
 </svg>
 
 <header class="dd-topbar">
-  <span id="nav-brand" class="dd-page-title truncate hidden">Deal Desk</span>
-  <span id="nav-email" class="dd-muted hidden sm:inline truncate" style="max-width:220px"></span>
+  <span id="nav-brand" class="truncate hidden">Deal Desk</span>
+  <span id="nav-email" class="dd-muted hidden sm:inline truncate"></span>
   <button id="theme-btn" class="btn btn-sm btn-ghost" title="Toggle theme" aria-label="Toggle theme">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-theme"/></svg>
   </button>
@@ -168,11 +252,24 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
   </button>
 </header>
 
-<!-- (a) Sign in / Create account -->
-<section id="scr-auth" class="hidden dd-center">
-  <div class="dd-card w-full max-w-sm">
-    <div class="dd-card-body">
-      <h1 class="dd-page-title">Deal Desk</h1>
+<!-- The entrance: brand plate + whichever form is live. -->
+<div class="dd-entrance">
+  <aside class="dd-plate">
+    <div class="dd-plate-head">
+      <h1 class="dd-wordmark">Deal
+Desk</h1>
+      <p class="dd-plate-line">Company news and financial statements.</p>
+    </div>
+    <dl class="dd-index">
+      <div><dt>Newsrun Tracker</dt><dd>Naver news</dd></div>
+      <div><dt>Financials from DART</dt><dd>DART filings</dd></div>
+    </dl>
+  </aside>
+
+  <div class="dd-entry">
+    <!-- (a) Sign in / Create account -->
+    <section id="scr-auth" class="hidden">
+      <h2>Workspace access</h2>
       <div class="dd-tabs" role="tablist" aria-label="Sign in or create an account">
         <button type="button" id="tab-signin" class="btn btn-sm" role="tab" aria-selected="true" aria-controls="au-form">Sign in</button>
         <button type="button" id="tab-signup" class="btn btn-sm" role="tab" aria-selected="false" aria-controls="au-form">Create account</button>
@@ -188,15 +285,11 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
         <button type="button" id="au-forgot" class="btn btn-sm">Forgot password?</button>
         <p id="au-msg" class="hidden" role="status" aria-live="polite"></p>
       </form>
-    </div>
-  </div>
-</section>
+    </section>
 
-<!-- (b) Password recovery: reached from the emailed reset link -->
-<section id="scr-recover" class="hidden dd-center">
-  <div class="dd-card w-full max-w-sm">
-    <div class="dd-card-body">
-      <h1 class="dd-page-title">Set new password</h1>
+    <!-- (b) Password recovery: reached from the emailed reset link -->
+    <section id="scr-recover" class="hidden">
+      <h2>Set new password</h2>
       <form id="pw-form" novalidate>
         <label for="pw-new">New password</label>
         <input id="pw-new" type="password" class="input input-sm" autocomplete="new-password">
@@ -205,39 +298,41 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
         <button class="btn btn-sm btn-primary w-full">Save password</button>
         <p id="pw-msg" class="hidden" role="status" aria-live="polite"></p>
       </form>
-    </div>
+    </section>
   </div>
-</section>
+</div>
 
 <!-- (c) Desk -->
 <section id="scr-main" class="hidden">
   <main class="dd-content">
-    <div class="dd-module">
-      <div>
-        <div class="dd-title">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-news"/></svg>
-          Newsrun Tracker
+    <div class="dd-tiles">
+      <a class="dd-tile" href="newsrun/">
+        <div class="dd-tile-head">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-news"/></svg>
+          <h2>Newsrun Tracker</h2>
         </div>
-        <div class="dd-muted">Company news, curated into a PE brief</div>
-        <div id="stat-newsrun" class="dd-muted dd-meta">&ndash;</div>
-      </div>
-      <a class="btn btn-sm" href="newsrun/" aria-label="Open Newsrun Tracker">Open</a>
-    </div>
-    <div class="dd-module">
-      <div>
-        <div class="dd-title">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chart"/></svg>
-          Financials from DART
+        <p>Company news, curated into a PE brief</p>
+        <div class="dd-tile-foot">
+          <div id="stat-newsrun" class="dd-figure">&ndash;</div>
+          <span class="dd-open">Open</span>
         </div>
-        <div class="dd-muted">3FS back data and Summary workbook from DART filings</div>
-        <div id="stat-financials" class="dd-muted dd-meta">&ndash;</div>
-      </div>
-      <a class="btn btn-sm" href="financials/" aria-label="Open Financials from DART">Open</a>
+      </a>
+      <a class="dd-tile" href="financials/">
+        <div class="dd-tile-head">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chart"/></svg>
+          <h2>Financials from DART</h2>
+        </div>
+        <p>3FS back data and Summary workbook from DART filings</p>
+        <div class="dd-tile-foot">
+          <div id="stat-financials" class="dd-figure">&ndash;</div>
+          <span class="dd-open">Open</span>
+        </div>
+      </a>
     </div>
 
     <section id="acl" class="dd-acl hidden">
-      <h2 class="dd-title">Access list</h2>
-      <p class="dd-muted">Only these emails can create an account.</p>
+      <h2>Access list</h2>
+      <p>Only these emails can create an account.</p>
       <form id="acl-form">
         <label for="acl-email" class="sr-only">Email to allow</label>
         <input id="acl-email" type="email" class="input input-sm" placeholder="name@example.com" autocomplete="off">
