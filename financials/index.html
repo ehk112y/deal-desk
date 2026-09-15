@@ -220,8 +220,6 @@ table.dd-sum { border-collapse:collapse; width:100%; font-size:13px; font-varian
   line-height:20px; text-align:center; background:var(--color-base-300); color:var(--color-base-content); }
 .dd-lvl-missing { background:var(--color-warning); color:var(--color-warning-content); }
 .dd-lvl-ofs { background:var(--color-secondary); color:var(--color-secondary-content); }
-.dd-center:not(.hidden) { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
-#login-msg { color:var(--color-base-content); }
 
 @container (min-width:800px) {
   .dd-cols { grid-template-columns:360px minmax(0,1fr); }
@@ -306,21 +304,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   </defs>
 </svg>
 
-<!-- (a) Login -->
-<section id="scr-login" class="hidden dd-center">
-  <div class="dd-card w-full max-w-sm">
-    <div class="dd-card-body">
-      <h1 class="dd-page-title">Deal Desk</h1>
-      <p class="dd-muted">We'll send a magic link to your invited email.</p>
-      <input id="login-email" type="email" placeholder="name@example.com" class="input input-sm w-full" autocomplete="email">
-      <button id="login-btn" class="btn btn-sm btn-primary w-full">Send magic link</button>
-      <p id="login-msg" class="hidden text-success">Check your inbox. Click the link to sign in.</p>
-      <p id="login-err" class="hidden text-error"></p>
-    </div>
-  </div>
-</section>
-
-<!-- (b) Main -->
+<!-- Main. No session: the home page is the only sign-in surface. -->
 <section id="scr-main" class="hidden">
  <div class="dd-shell">
 
@@ -536,13 +520,12 @@ $('ctl-toggle').onclick = () => {
   paintCtl();
 };
 
-$('login-email').setAttribute('aria-label', 'Email address');
 document.querySelector('.logout-btn').setAttribute('aria-label', 'Log out');
 $('toast-msg').setAttribute('role', 'status');
 $('toast-msg').setAttribute('aria-atomic', 'true');
 $('res-status').setAttribute('role', 'status');
 
-const show = id => ['scr-login', 'scr-main'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+const show = id => $(id).classList.remove('hidden');
 let toastTimer;
 function toast(msg) {
   $('toast-msg').textContent = msg;
@@ -1040,24 +1023,12 @@ paintUnit();
 renderCatalog();
 renderResult();
 
-/* ---------- Auth: allowlist = Supabase "Invite user" (signups OFF) ---------- */
+/* ---------- Auth: the session is set on the home page and shared through localStorage ---------- */
 if (!demo) {
-  $('login-btn').onclick = async () => {
-    const email = $('login-email').value.trim();
-    if (!email) return;
-    const { error } = await sb.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false }
-    });
-    // Same answer either way: whether an address is invited must not leak from this screen.
-    if (error) console.warn('signInWithOtp:', error.message);
-    $('login-msg').classList.remove('hidden');
-    $('login-err').classList.add('hidden');
-  };
-  document.querySelectorAll('.logout-btn').forEach(b => b.onclick = async () => { await sb.auth.signOut(); location.reload(); });
+  document.querySelectorAll('.logout-btn').forEach(b => b.onclick = async () => { await sb.auth.signOut(); location.replace('../'); });
 
   const boot = session => {
-    if (!session) return show('scr-login');
+    if (!session) return location.replace('../');
     me = session.user.email;
     $('nav-email').textContent = me;
     show('scr-main');

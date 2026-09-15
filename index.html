@@ -11,7 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0"></script>
 <style>
-/* Deal Desk: the suite index. Same shell tokens as the two modules. */
+/* Deal Desk: the suite index and the only sign-in surface. Same shell tokens as the two modules. */
 [data-theme="deal"] {
   color-scheme:light;
   --color-base-100:#FFFFFF;
@@ -59,6 +59,7 @@ body {
   font-size:13px; line-height:1.45; font-variant-numeric:tabular-nums;
   color:var(--color-base-content); background:var(--color-base-200);
 }
+label { font-weight:500; }
 .dd-title { font-size:15px; font-weight:600; line-height:24px; letter-spacing:-.015em; }
 .dd-page-title { font-size:20px; font-weight:600; line-height:24px; letter-spacing:-.025em; }
 .dd-muted { opacity:1; color:var(--dd-muted); }
@@ -87,21 +88,52 @@ button,a,input { transition:opacity 120ms linear,background-color 120ms linear; 
 .dd-center:not(.hidden) { min-height:calc(100vh - 56px); display:flex; align-items:center;
   justify-content:center; padding:24px; box-sizing:border-box; }
 
+/* Sign in / Create account: one form, a segmented switch above it. */
+.dd-tabs { display:flex; border-bottom:1px solid var(--dd-border); }
+.dd-tabs .btn { flex:1; background:transparent; border:0; border-bottom:2px solid transparent;
+  border-radius:0; color:var(--dd-muted); font-weight:400; padding-inline:4px; }
+.dd-tabs .btn:hover { background:var(--dd-hover); }
+.dd-tabs .btn[aria-selected="true"] { color:var(--color-base-content); font-weight:600;
+  border-bottom-color:var(--color-primary); }
+#au-form,#pw-form { display:flex; flex-direction:column; gap:8px; margin:0; }
+#au-form > label,#pw-form > label { color:var(--dd-muted); }
+#au-submit,#pw-form .btn-primary { margin-top:8px; }
+#au-forgot { align-self:flex-start; height:24px; min-height:24px; padding-inline:0;
+  background:transparent; color:var(--dd-muted); font-weight:400;
+  text-decoration:underline; text-underline-offset:3px; }
+#au-forgot:hover { color:var(--color-base-content); }
+.dd-err { color:var(--color-error); }
+
 /* The desk: one rule per module, no card inside a card. */
 .dd-module { display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
   min-height:36px; padding:12px 0; border-top:1px solid var(--dd-border); }
-.dd-module:last-child { border-bottom:1px solid var(--dd-border); }
+.dd-module:last-of-type { border-bottom:1px solid var(--dd-border); }
 .dd-module > div { min-width:0; }
 .dd-module .dd-title { display:flex; align-items:center; gap:8px; }
 .dd-module .dd-title svg { flex:none; color:var(--dd-muted); }
 /* The page sits on base-200, where daisyUI's default .btn surface disappears. */
-.dd-module .btn { flex:none; min-width:72px; background:transparent;
+:is(.dd-module,.dd-acl) .btn { flex:none; min-width:72px; background:transparent;
   border:1px solid var(--color-primary); color:var(--color-base-content); }
-.dd-module .btn:hover { background:var(--dd-hover); }
+:is(.dd-module,.dd-acl) .btn:hover { background:var(--dd-hover); }
+
+/* Access list: owner only, same register look as the module rows. */
+.dd-acl { margin-top:24px; }
+.dd-acl h2 { margin:0; }
+.dd-acl form { display:flex; gap:8px; max-width:420px; margin:8px 0 16px; }
+.dd-acl-row { display:flex; align-items:center; justify-content:space-between; gap:8px;
+  min-height:36px; padding:4px 0; border-top:1px solid var(--dd-border); }
+.dd-acl-row:last-child { border-bottom:1px solid var(--dd-border); }
+.dd-acl-row > span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dd-acl-x { flex:none; width:24px; height:24px; padding:0; border:0; border-radius:2px;
+  background:transparent; color:var(--dd-muted); font-size:13px; line-height:24px; cursor:pointer;
+  transition:opacity 120ms linear,background-color 120ms linear; }
+.dd-acl-x:hover { background:var(--dd-hover); color:var(--color-base-content); }
+#acl-msg:not(.hidden) { padding-top:8px; }
 
 @media (max-width:480px) {
   .dd-topbar #theme-btn,.dd-topbar .logout-btn { min-width:40px; min-height:40px; padding-inline:8px; }
 }
+@media (pointer:coarse) { .dd-acl-x { width:40px; height:40px; line-height:40px; } }
 @media (prefers-reduced-motion:reduce) { button,a,input,.btn { transition:none; } }
 </style>
 </head>
@@ -111,6 +143,7 @@ button,a,input { transition:opacity 120ms linear,background-color 120ms linear; 
 <script>
 const SUPABASE_URL = 'https://ffgtikltyjsqscujllhz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZ3Rpa2x0eWpzcXNjdWpsbGh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMTI3MTEsImV4cCI6MjEwNDg4ODcxMX0.akPaiEJnIM5cJATQOOfCEHos6FgsEsF2i2p1JF5FqAg';
+const OWNER_EMAIL = 'ehk112y@gmail.com';
 </script>
 
 <!-- Inline icons -->
@@ -135,20 +168,48 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   </button>
 </header>
 
-<!-- (a) Login -->
-<section id="scr-login" class="hidden dd-center">
+<!-- (a) Sign in / Create account -->
+<section id="scr-auth" class="hidden dd-center">
   <div class="dd-card w-full max-w-sm">
     <div class="dd-card-body">
       <h1 class="dd-page-title">Deal Desk</h1>
-      <p class="dd-muted">Sign in with your invited email.</p>
-      <input id="login-email" type="email" placeholder="name@example.com" class="input input-sm w-full" autocomplete="email" aria-label="Email address">
-      <button id="login-btn" class="btn btn-sm btn-primary w-full">Send sign-in link</button>
-      <p id="login-msg" class="hidden" role="status">Check your inbox. Click the link to sign in.</p>
+      <div class="dd-tabs" role="tablist" aria-label="Sign in or create an account">
+        <button type="button" id="tab-signin" class="btn btn-sm" role="tab" aria-selected="true" aria-controls="au-form">Sign in</button>
+        <button type="button" id="tab-signup" class="btn btn-sm" role="tab" aria-selected="false" aria-controls="au-form">Create account</button>
+      </div>
+      <form id="au-form" role="tabpanel" aria-labelledby="tab-signin" novalidate>
+        <label for="au-email">Email</label>
+        <input id="au-email" type="email" class="input input-sm" placeholder="name@example.com" autocomplete="email">
+        <label for="au-pass">Password</label>
+        <input id="au-pass" type="password" class="input input-sm" autocomplete="current-password">
+        <label id="au-pass2-label" for="au-pass2" class="hidden">Confirm password</label>
+        <input id="au-pass2" type="password" class="input input-sm hidden" autocomplete="new-password">
+        <button id="au-submit" class="btn btn-sm btn-primary w-full">Sign in</button>
+        <button type="button" id="au-forgot" class="btn btn-sm">Forgot password?</button>
+        <p id="au-msg" class="hidden" role="status" aria-live="polite"></p>
+      </form>
     </div>
   </div>
 </section>
 
-<!-- (b) Desk -->
+<!-- (b) Password recovery: reached from the emailed reset link -->
+<section id="scr-recover" class="hidden dd-center">
+  <div class="dd-card w-full max-w-sm">
+    <div class="dd-card-body">
+      <h1 class="dd-page-title">Set new password</h1>
+      <form id="pw-form" novalidate>
+        <label for="pw-new">New password</label>
+        <input id="pw-new" type="password" class="input input-sm" autocomplete="new-password">
+        <label for="pw-new2">Confirm new password</label>
+        <input id="pw-new2" type="password" class="input input-sm" autocomplete="new-password">
+        <button class="btn btn-sm btn-primary w-full">Save password</button>
+        <p id="pw-msg" class="hidden" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- (c) Desk -->
 <section id="scr-main" class="hidden">
   <main class="dd-content">
     <div class="dd-module">
@@ -173,6 +234,18 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
       </div>
       <a class="btn btn-sm" href="financials/" aria-label="Open Financials from DART">Open</a>
     </div>
+
+    <section id="acl" class="dd-acl hidden">
+      <h2 class="dd-title">Access list</h2>
+      <p class="dd-muted">Only these emails can create an account.</p>
+      <form id="acl-form">
+        <label for="acl-email" class="sr-only">Email to allow</label>
+        <input id="acl-email" type="email" class="input input-sm" placeholder="name@example.com" autocomplete="off">
+        <button class="btn btn-sm">Add</button>
+      </form>
+      <div id="acl-list"></div>
+      <p id="acl-msg" class="hidden" role="status" aria-live="polite"></p>
+    </section>
   </main>
 </section>
 
@@ -194,9 +267,15 @@ $('theme-btn').onclick = () => {
 };
 
 function show(id) {
-  ['scr-login', 'scr-main'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+  ['scr-auth', 'scr-recover', 'scr-main'].forEach(s => $(s).classList.toggle('hidden', s !== id));
   // nav-email keeps its own `hidden sm:inline`; it is empty until a session exists.
   ['nav-brand', 'logout-btn'].forEach(s => $(s).classList.toggle('hidden', id !== 'scr-main'));
+}
+
+function say(el, text, isError) {
+  el.textContent = text;
+  el.classList.toggle('hidden', !text);
+  el.classList.toggle('dd-err', !!isError);
 }
 
 /* One live figure per module, read with the signed-in user's session (RLS scopes the rows). */
@@ -216,28 +295,129 @@ if (demo) {
   $('nav-email').textContent = 'demo@dealdesk';
   show('scr-main');
 } else {
-  $('login-btn').onclick = async () => {
-    const email = $('login-email').value.trim();
-    if (!email) return;
-    const { error } = await sb.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false }
-    });
-    // Same answer either way: whether an address is invited must not leak from this screen.
-    if (error) console.warn('signInWithOtp:', error.message);
-    $('login-msg').classList.remove('hidden');
+
+  /* Sign in / Create account: one form, the tab decides what it does. */
+  let mode = 'signin';
+  const setMode = m => {
+    mode = m;
+    $('tab-signin').setAttribute('aria-selected', String(m === 'signin'));
+    $('tab-signup').setAttribute('aria-selected', String(m === 'signup'));
+    $('au-form').setAttribute('aria-labelledby', 'tab-' + m);
+    ['au-pass2', 'au-pass2-label'].forEach(i => $(i).classList.toggle('hidden', m === 'signin'));
+    $('au-forgot').classList.toggle('hidden', m === 'signup');
+    $('au-submit').textContent = m === 'signin' ? 'Sign in' : 'Create account';
+    $('au-pass').autocomplete = m === 'signin' ? 'current-password' : 'new-password';
+    say($('au-msg'), '');
   };
+  $('tab-signin').onclick = () => setMode('signin');
+  $('tab-signup').onclick = () => setMode('signup');
+
+  $('au-form').onsubmit = async e => {
+    e.preventDefault();
+    const msg = $('au-msg');
+    const email = $('au-email').value.trim().toLowerCase();
+    const password = $('au-pass').value;
+    if (!email) return say(msg, 'Enter your email address.', true);
+    if (!password) return say(msg, 'Enter your password.', true);
+
+    if (mode === 'signin') {
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) say(msg, error.message, true);
+      return;
+    }
+    if (password.length < 8) return say(msg, 'Password must be at least 8 characters.', true);
+    if (password !== $('au-pass2').value) return say(msg, 'Passwords do not match.', true);
+
+    const { error } = await sb.auth.signUp({
+      email, password,
+      options: { emailRedirectTo: location.origin + location.pathname }
+    });
+    if (!error) return say(msg, 'Check your inbox to confirm, then sign in.');
+    // The allow-list trigger surfaces either its own text or a generic database error.
+    const blocked = /signup not allowed|database error/i.test(error.message);
+    say(msg, blocked ? 'This email is not on the access list. Ask the owner to add you.' : error.message, true);
+  };
+
+  $('au-forgot').onclick = async () => {
+    const msg = $('au-msg');
+    const email = $('au-email').value.trim().toLowerCase();
+    if (!email) return say(msg, 'Enter your email address first.', true);
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+    // Same answer either way: whether an address has an account must not leak from this screen.
+    if (error) console.warn('resetPasswordForEmail:', error.message);
+    say(msg, 'If that email has an account, a reset link is on its way.');
+  };
+
+  /* Recovery: the emailed link opens a session that may only set a password. */
+  let recovering = /type=recovery/.test(location.hash);
+  $('pw-form').onsubmit = async e => {
+    e.preventDefault();
+    const msg = $('pw-msg');
+    const password = $('pw-new').value;
+    if (password.length < 8) return say(msg, 'Password must be at least 8 characters.', true);
+    if (password !== $('pw-new2').value) return say(msg, 'Passwords do not match.', true);
+    const { error } = await sb.auth.updateUser({ password });
+    if (error) return say(msg, error.message, true);
+    location.replace(location.pathname);
+  };
+
+  /* Access list: the owner's own view of who may sign up. RLS enforces it again server-side. */
+  async function loadAcl() {
+    const { data, error } = await sb.from('allowed_emails').select('email').order('email');
+    if (error) return say($('acl-msg'), error.message, true);
+    $('acl-list').replaceChildren(...data.map(r => {
+      const row = document.createElement('div');
+      row.className = 'dd-acl-row';
+      const label = document.createElement('span');
+      label.textContent = r.email;
+      row.append(label);
+      if (r.email !== OWNER_EMAIL) {
+        const x = document.createElement('button');
+        x.type = 'button';
+        x.className = 'dd-acl-x';
+        x.textContent = '×';
+        x.title = 'Remove ' + r.email;
+        x.setAttribute('aria-label', 'Remove ' + r.email);
+        x.onclick = async () => {
+          const { error } = await sb.from('allowed_emails').delete().eq('email', r.email);
+          if (error) return say($('acl-msg'), error.message, true);
+          say($('acl-msg'), '');
+          loadAcl();
+        };
+        row.append(x);
+      }
+      return row;
+    }));
+  }
+  $('acl-form').onsubmit = async e => {
+    e.preventDefault();
+    const email = $('acl-email').value.trim().toLowerCase();
+    if (!email) return;
+    const { error } = await sb.from('allowed_emails').insert({ email });
+    if (error) return say($('acl-msg'), error.message, true);
+    $('acl-email').value = '';
+    say($('acl-msg'), '');
+    loadAcl();
+  };
+
   $('logout-btn').onclick = async () => { await sb.auth.signOut(); location.reload(); };
 
   const boot = session => {
-    if (!session) return show('scr-login');
+    if (recovering) return show('scr-recover');
+    if (!session) return show('scr-auth');
     $('nav-email').textContent = session.user.email;
     show('scr-main');
     stat('requests', $('stat-newsrun'));
     stat('fin_requests', $('stat-financials'));
+    const owner = session.user.email.toLowerCase() === OWNER_EMAIL;
+    $('acl').classList.toggle('hidden', !owner);
+    if (owner) loadAcl();
   };
   sb.auth.getSession().then(({ data }) => boot(data.session));
-  sb.auth.onAuthStateChange((_e, s) => boot(s));
+  sb.auth.onAuthStateChange((e, s) => {
+    if (e === 'PASSWORD_RECOVERY') recovering = true;
+    boot(s);
+  });
 }
 </script>
 </body>

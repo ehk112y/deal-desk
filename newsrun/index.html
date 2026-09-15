@@ -235,8 +235,6 @@ input[type="date"].input { min-width:0; flex:1 1 0; font-variant-numeric:tabular
 #report-host .more-item:hover { background:var(--dd-hover); }
 .dd-promote.btn { height:36px; width:36px; padding:0; font-size:20px; line-height:24px; font-weight:400; color:var(--color-primary); border-radius:0; }
 .dd-promote:hover { background:var(--dd-hover); }
-.dd-center:not(.hidden) { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
-#login-msg { color:var(--color-base-content); }
 .alert { border-radius:2px; box-shadow:none; font-size:13px; }
 #report-host .collapse,#report-host .collapse-content,#report-host .collapse-title::after,
 #report-host details::details-content { transition:none; }
@@ -295,33 +293,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
   </defs>
 </svg>
 
-<!-- (a) Login -->
-<section id="scr-login" class="hidden dd-center">
-  <div class="dd-card w-full max-w-sm">
-    <div class="dd-card-body">
-      <h1 class="dd-page-title">Deal Desk</h1>
-      <p class="dd-muted">We'll send a magic link to your invited email.</p>
-      <input id="login-email" type="email" placeholder="name@example.com" class="input input-sm w-full" autocomplete="email">
-      <button id="login-btn" class="btn btn-sm btn-primary w-full">Send magic link</button>
-      <p id="login-msg" class="hidden text-success">Check your inbox. Click the link to sign in.</p>
-      <p id="login-err" class="hidden text-error"></p>
-    </div>
-  </div>
-</section>
-
-<!-- (b) Not allowed -->
-<section id="scr-denied" class="hidden dd-center">
-  <div class="dd-card w-full max-w-sm">
-    <div class="dd-card-body">
-      <h2 class="dd-title">Access required</h2>
-      <p>Only invited accounts can sign in. Please send your email to the administrator.</p>
-      <p id="denied-email" class="dd-muted"></p>
-      <button id="denied-back" class="btn btn-sm btn-ghost">Back</button>
-    </div>
-  </div>
-</section>
-
-<!-- (c) Main -->
+<!-- Main. No session: the home page is the only sign-in surface. -->
 <section id="scr-main" class="hidden">
  <div class="dd-shell">
 
@@ -499,13 +471,12 @@ $('ctl-toggle').onclick = () => {
 };
 
 /* Accessible names / states that the markup cannot express statically */
-$('login-email').setAttribute('aria-label', 'Email address');
 document.querySelector('.logout-btn').setAttribute('aria-label', 'Log out');
 
 $('toast-msg').setAttribute('role', 'status');
 $('toast-msg').setAttribute('aria-atomic', 'true');
 
-const show = id => ['scr-login', 'scr-denied', 'scr-main'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+const show = id => $(id).classList.remove('hidden');
 let toastTimer;
 function toast(msg) {
   $('toast-msg').textContent = msg;
@@ -682,30 +653,14 @@ $('req-form').onsubmit = async e => {
 };
 guardSubmit($('req-form'));
 
-/* Auth: allowlist = Supabase "Invite user" (signups OFF). Uninvited emails are rejected here. */
+/* Auth: the session is set on the home page and shared through localStorage. */
 let me = null, channel = null;
-$('denied-back').onclick = () => show('scr-login');
 
 if (!demo) {
-  $('login-btn').onclick = async () => {
-    const email = $('login-email').value.trim();
-    if (!email) return;
-    const { error } = await sb.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false }
-    });
-    if (error && /signup|not allowed|not authorized|not found/i.test(error.message)) {
-      $('denied-email').textContent = email;
-      return show('scr-denied');
-    }
-    $('login-msg').classList.toggle('hidden', !!error);
-    $('login-err').classList.toggle('hidden', !error);
-    if (error) $('login-err').textContent = error.message;
-  };
-  document.querySelectorAll('.logout-btn').forEach(b => b.onclick = async () => { await sb.auth.signOut(); location.reload(); });
+  document.querySelectorAll('.logout-btn').forEach(b => b.onclick = async () => { await sb.auth.signOut(); location.replace('../'); });
 
   const boot = session => {
-    if (!session) return show('scr-login');
+    if (!session) return location.replace('../');
     me = session.user.email;
     $('nav-email').textContent = me;
     show('scr-main');
