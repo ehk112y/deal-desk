@@ -123,8 +123,9 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
 .dd-spark { position:absolute; left:0; top:0; width:0; height:0; opacity:0;
   pointer-events:none; background:#E3DCC2; }
 .dd-plate-head { display:flex; flex-direction:column; gap:20px; }
-.dd-wordmark { margin:0; font-size:72px; line-height:76px; font-weight:600;
-  letter-spacing:-.03em; color:#E3DC95; white-space:pre-line; }
+/* one line at every width: it scales, it never wraps */
+.dd-wordmark { margin:0; font-size:clamp(48px,5vw,72px); line-height:1.08; font-weight:600;
+  letter-spacing:-.03em; color:#E3DC95; white-space:nowrap; }
 /* one line at 1440; it wraps rather than shrinking when the plate narrows */
 .dd-plate-line { margin:0; max-width:56ch; font-size:15px; line-height:24px;
   color:color-mix(in srgb,#E3DCC2 76%,#1B2021); }
@@ -133,8 +134,14 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
 .dd-index > div { display:flex; align-items:center; height:40px;
   border-top:1px solid rgba(227,220,194,.14); }
 .dd-index > div:last-child { border-bottom:1px solid rgba(227,220,194,.14); }
-.dd-index dt { flex:1 1 auto; min-width:0; padding-right:12px; font-weight:600;
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dd-index dt { flex:1 1 auto; min-width:0; padding-right:12px;
+  display:flex; align-items:center; gap:10px; }
+.dd-who { min-width:0; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* each module is an intern: a small monochrome glyph and a numbered label, nothing louder */
+.dd-ava { flex:none; color:currentColor; }
+.dd-eyebrow { flex:none; font-size:12px; letter-spacing:.01em;
+  font-variant-numeric:tabular-nums; color:var(--dd-muted); }
+.dd-plate .dd-eyebrow { color:color-mix(in srgb,#E3DCC2 55%,#1B2021); }
 .dd-index dd { flex:none; width:var(--dd-col); margin:0; padding-left:13px; box-sizing:border-box;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   color:color-mix(in srgb,#E3DCC2 70%,#1B2021); }
@@ -181,8 +188,12 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
   box-sizing:border-box; text-decoration:none; color:inherit; background:var(--dd-lift);
   border:1px solid var(--dd-border); border-radius:4px; }
 .dd-tile:hover { background:var(--dd-work); border-color:var(--color-primary); }
-.dd-tile-head { display:flex; align-items:center; gap:10px; }
-.dd-tile-head svg { flex:none; color:var(--dd-muted); }
+.dd-desk-title { margin:0 0 32px; font-size:26px; line-height:32px; font-weight:600;
+  letter-spacing:-.02em; }
+.dd-tile-head { display:flex; align-items:center; gap:12px; }
+.dd-tile-head .dd-ava { color:var(--color-base-content); }
+.dd-tile-id { min-width:0; }
+.dd-tile-id .dd-eyebrow { display:block; margin-bottom:2px; }
 .dd-tile h2 { margin:0; font-size:20px; font-weight:600; line-height:1.2; letter-spacing:-.02em; }
 .dd-tile p { margin:0; color:var(--dd-muted); }
 .dd-tile-foot { margin-top:auto; padding-top:16px; display:flex; flex-wrap:wrap;
@@ -242,7 +253,7 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
   .dd-plate { flex-direction:row; align-items:center; justify-content:flex-start; gap:0; height:64px;
     padding:0 64px 0 20px; border-right:0; border-bottom:1px solid #51513D; }
   .dd-rule-v,.dd-spark,.dd-plate-line,.dd-index { display:none; }
-  .dd-wordmark { font-size:20px; line-height:24px; letter-spacing:-.02em; white-space:normal; }
+  .dd-wordmark { font-size:20px; line-height:24px; letter-spacing:-.02em; white-space:nowrap; }
   .dd-entry { align-items:flex-start; padding:48px 20px 40px; }
   .dd-entry > section { max-width:360px; }
   .dd-topbar { padding:0 8px; }
@@ -273,8 +284,17 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
 <!-- Inline icons -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
-    <g id="i-news"><path d="M2.5 3.5h11v9h-11z"/><path d="M5 6h6M5 8.5h6M5 11h3.5"/></g>
-    <g id="i-chart"><path d="M2.5 13.5V8M6.2 13.5V3.5M9.8 13.5v-4M13.5 13.5v-7"/></g>
+    <!-- the two interns: monochrome, they take their colour from whatever they sit on -->
+    <g id="i-intern-1">
+      <rect x="1.2" y="1.2" width="21.6" height="21.6" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".5"/>
+      <circle cx="8.4" cy="8.6" r="3.6" fill="currentColor" opacity=".9"/>
+      <path d="M4.4 15.6h15.2M4.4 19.2h9.6" stroke="currentColor" stroke-width="1.6" opacity=".42" stroke-linecap="square"/>
+    </g>
+    <g id="i-intern-2">
+      <rect x="1.2" y="1.2" width="21.6" height="21.6" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".5"/>
+      <path d="M12 4.6v14.8M4.6 12h14.8" stroke="currentColor" stroke-width="1.4" opacity=".42"/>
+      <rect x="12" y="12" width="7.4" height="7.4" fill="currentColor" opacity=".9"/>
+    </g>
     <g id="i-theme"><path d="M13.5 9.6A5.5 5.5 0 016.4 2.5a5.6 5.6 0 107.1 7.1z"/></g>
     <g id="i-out"><path d="M9.5 11.5L12.5 8 9.5 4.5M12.5 8H5M6.5 2.5h-4v11h4"/></g>
   </defs>
@@ -298,13 +318,26 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
     <div class="dd-rule-v" aria-hidden="true"></div>
     <div class="dd-spark" aria-hidden="true"></div>
     <div class="dd-plate-head">
-      <h1 class="dd-wordmark">Bankers’
-Toolkit</h1>
+      <h1 class="dd-wordmark">Bankers’ Toolkit</h1>
       <p class="dd-plate-line">A bunch of interns working below minimum wage. Legally.</p>
     </div>
     <dl class="dd-index">
-      <div><dt>Newsrun Tracker</dt><dd>Real-time, well-curated news run. Nothing missed.</dd></div>
-      <div><dt>Financials (DART)</dt><dd>Neatly organized, errorless Excel back data.</dd></div>
+      <div>
+        <dt>
+          <svg class="dd-ava" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-intern-1"/></svg>
+          <span class="dd-eyebrow">Intern 01</span>
+          <span class="dd-who">Newsrun Tracker</span>
+        </dt>
+        <dd>Real-time, well-curated news run. Nothing missed.</dd>
+      </div>
+      <div>
+        <dt>
+          <svg class="dd-ava" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-intern-2"/></svg>
+          <span class="dd-eyebrow">Intern 02</span>
+          <span class="dd-who">Financials (DART)</span>
+        </dt>
+        <dd>Neatly organized, errorless Excel back data.</dd>
+      </div>
     </dl>
   </aside>
 
@@ -347,11 +380,15 @@ Toolkit</h1>
 <!-- (c) Desk -->
 <section id="scr-main" class="hidden">
   <main class="dd-content">
+    <h1 class="dd-desk-title">Your interns are at their desks.</h1>
     <div class="dd-tiles">
       <a class="dd-tile" href="newsrun/">
         <div class="dd-tile-head">
-          <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-news"/></svg>
-          <h2>Newsrun Tracker</h2>
+          <svg class="dd-ava" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-intern-1"/></svg>
+          <div class="dd-tile-id">
+            <span class="dd-eyebrow">Intern 01</span>
+            <h2>Newsrun Tracker</h2>
+          </div>
         </div>
         <p>Real-time, well-curated news run. Nothing missed.</p>
         <div class="dd-tile-foot">
@@ -361,8 +398,11 @@ Toolkit</h1>
       </a>
       <a class="dd-tile" href="financials/">
         <div class="dd-tile-head">
-          <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chart"/></svg>
-          <h2>Financials (DART)</h2>
+          <svg class="dd-ava" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-intern-2"/></svg>
+          <div class="dd-tile-id">
+            <span class="dd-eyebrow">Intern 02</span>
+            <h2>Financials (DART)</h2>
+          </div>
         </div>
         <p>Neatly organized, errorless Excel back data.</p>
         <div class="dd-tile-foot">
