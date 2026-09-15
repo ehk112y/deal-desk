@@ -1,0 +1,1279 @@
+<!doctype html>
+<html lang="en" data-theme="deal">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Newsrun Tracker</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5.7.37" rel="stylesheet" type="text/css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0"></script>
+<style>
+/* Deal Desk: the work surface, the request register, and the export sheet. */
+[data-theme="deal"] {
+  color-scheme:light;
+  --color-base-100:#FFFFFF;
+  --color-base-200:color-mix(in srgb,#E3DCC2 22%,#FFFFFF);
+  --color-base-300:#E3DCC2; --color-base-content:#1B2021;
+  --color-primary:#51513D; --color-primary-content:#FFFFFF;
+  --color-secondary:#A6A867; --color-secondary-content:#1B2021;
+  --color-accent:#E3DC95; --color-accent-content:#1B2021;
+  --color-neutral:#1B2021; --color-neutral-content:#E3DCC2;
+  --color-info:#51513D; --color-info-content:#FFFFFF;
+  --color-success:#A6A867; --color-success-content:#1B2021;
+  --color-warning:#E3DC95; --color-warning-content:#1B2021;
+  --color-error:#51513D; --color-error-content:#FFFFFF;
+  --dd-border:#E3DCC2; --dd-muted:#51513D;
+  --dd-work:color-mix(in srgb,#E3DCC2 36%,#FFFFFF);
+  --dd-selected:#51513D; --dd-selected-ink:#FFFFFF;
+  --dd-hover:color-mix(in srgb,#E3DCC2 55%,#FFFFFF);
+  --radius-box:4px; --radius-field:2px; --radius-selector:2px;
+  --size-field:.25rem; --size-selector:.25rem;
+  --border:1px; --depth:0; --noise:0;
+}
+[data-theme="deal-dark"] {
+  color-scheme:dark;
+  --color-base-100:#1B2021;
+  --color-base-200:color-mix(in srgb,#1B2021 96%,#E3DCC2);
+  --color-base-300:#51513D; --color-base-content:#E3DCC2;
+  --color-primary:#A6A867; --color-primary-content:#1B2021;
+  --color-secondary:#51513D; --color-secondary-content:#E3DCC2;
+  --color-accent:#E3DC95; --color-accent-content:#1B2021;
+  --color-neutral:#1B2021; --color-neutral-content:#E3DCC2;
+  --color-info:#A6A867; --color-info-content:#1B2021;
+  --color-success:#A6A867; --color-success-content:#1B2021;
+  --color-warning:#E3DC95; --color-warning-content:#1B2021;
+  --color-error:#E3DC95; --color-error-content:#1B2021;
+  --dd-border:#51513D;
+  --dd-muted:color-mix(in srgb,#E3DCC2 82%,#1B2021);
+  --dd-work:color-mix(in srgb,#1B2021 92%,#E3DCC2);
+  --dd-selected:#A6A867; --dd-selected-ink:#1B2021;
+  --dd-hover:color-mix(in srgb,#51513D 45%,#1B2021);
+  --radius-box:4px; --radius-field:2px; --radius-selector:2px;
+  --size-field:.25rem; --size-selector:.25rem;
+  --border:1px; --depth:0; --noise:0;
+}
+
+body {
+  margin:0; font-family:"IBM Plex Sans","Noto Sans KR",sans-serif;
+  font-size:13px; line-height:1.45; font-variant-numeric:tabular-nums;
+  color:var(--color-base-content);
+}
+label,.dd-label { font-weight:500; }
+.dd-title { font-size:15px; font-weight:600; line-height:24px; letter-spacing:-.015em; }
+.dd-page-title { font-size:20px; font-weight:600; line-height:24px; letter-spacing:-.025em; }
+.dd-muted { opacity:1; color:var(--dd-muted); }
+.dd-meta { font-size:13px; }
+button,a,summary,input { transition:opacity 120ms linear,background-color 120ms linear; }
+.btn { font-family:inherit; font-size:13px; font-weight:500; border-radius:2px;
+  box-shadow:none; text-transform:none; height:36px; min-height:36px; padding-inline:12px;
+  transition:opacity 120ms linear,background-color 120ms linear; }
+.btn:active:not(:disabled) { transform:none; translate:none; scale:1; }
+.btn-primary { font-weight:600; }
+.input { height:36px; min-height:36px; font-size:13px; width:100%; border-radius:2px;
+  padding-inline:8px; background:var(--color-base-100); box-shadow:none;
+  border-color:color-mix(in srgb,var(--color-base-content) 40%,var(--color-base-100)); }
+.input::placeholder { opacity:1; color:var(--dd-muted); }
+input[type="date"].input { min-width:0; flex:1 1 0; font-variant-numeric:tabular-nums; }
+.checkbox { border-radius:2px; width:16px; height:16px; flex:none; }
+:is(button,a,summary,input):focus-visible { outline:2px solid var(--color-primary); outline-offset:2px; }
+.btn:disabled,.input:disabled { opacity:.5; }
+
+/* Fixed shell. Its navigation reads as a tool selector, with a narrow active rail. */
+.dd-shell { display:flex; min-height:100vh; align-items:stretch; }
+.dd-sidebar { width:220px; flex:0 0 220px; box-sizing:border-box;
+  background:#1B2021; color:#E3DCC2; border-right:1px solid #51513D; }
+.dd-sidebar-inner { position:sticky; top:0; height:100vh; box-sizing:border-box;
+  display:flex; flex-direction:column; gap:8px; padding:8px; }
+.dd-sidebar.collapsed { width:56px; flex:0 0 56px; }
+.dd-brand { display:flex; align-items:center; height:40px; padding:0 8px; margin-bottom:8px;
+  font-weight:600; font-size:15px; letter-spacing:-.015em; white-space:nowrap; overflow:hidden; }
+.dd-brand-mini { display:none; }
+.dd-sidebar.collapsed .dd-label,.dd-sidebar.collapsed .dd-brand-text { display:none; }
+.dd-sidebar.collapsed .dd-brand { justify-content:center; padding:0; }
+.dd-sidebar.collapsed .dd-brand-mini { display:block; font-size:13px; }
+.dd-mod { display:flex; align-items:center; gap:8px; height:36px; padding:0 8px; width:100%;
+  box-sizing:border-box; font-size:13px; font-weight:400; text-align:left; white-space:nowrap;
+  overflow:hidden; text-decoration:none;
+  border-radius:2px; border-left:2px solid transparent; background:transparent; color:inherit; cursor:pointer; }
+.dd-sidebar.collapsed .dd-mod { justify-content:center; padding:0; }
+.dd-mod:hover { background:#51513D; }
+.dd-mod.dd-active { background:#51513D; border-left-color:#E3DC95; color:#FFFFFF; font-weight:600; cursor:default; }
+.dd-mod svg { flex:none; }
+.dd-sidebar :is(button,a):focus-visible { outline-color:#E3DC95; }
+#sb-toggle { margin-top:auto; border-top:1px solid #51513D; border-radius:0; height:40px; }
+.dd-main { flex:1 1 auto; min-width:0; display:flex; flex-direction:column; container-type:inline-size; }
+.dd-topbar { position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:8px;
+  height:56px; padding:0 24px; background:var(--color-base-100); border-bottom:1px solid var(--dd-border); }
+#theme-btn { border-left:1px solid var(--dd-border); border-radius:0; margin-left:8px; }
+.dd-content { max-width:1400px; width:100%; margin:0 auto; padding:24px; box-sizing:border-box; }
+.dd-cols { display:grid; gap:24px; grid-template-columns:minmax(0,1fr); align-items:start; }
+.dd-row { min-height:36px; display:flex; align-items:center; }
+
+/* A single input work surface. Only auth and the unfinished DART module use cards. */
+.dd-card { background:var(--color-base-100); border:1px solid var(--dd-border); border-radius:4px; box-shadow:none; }
+.dd-card-body { display:flex; flex-direction:column; gap:8px; padding:16px; }
+.dd-controls { background:var(--dd-work); border-radius:4px; gap:0; }
+.dd-controls .dd-card { background:transparent; border:0; border-radius:0; }
+.dd-controls .dd-card-body { gap:16px; }
+.dd-controls .dd-register { border-top:1px solid var(--dd-border); }
+#ctl-panel { gap:0; }
+.dd-ctl-toggle { display:flex; align-items:center; gap:8px; height:36px; padding:0 8px; width:100%;
+  font-size:13px; color:var(--dd-muted); background:transparent; border:0; border-radius:2px;
+  cursor:pointer; white-space:nowrap; overflow:hidden; }
+.dd-ctl-toggle:hover { background:var(--dd-hover); }
+.dd-ctl-toggle svg { flex:none; }
+.dd-controls.collapsed #ctl-panel { display:none; }
+.dd-controls.collapsed .dd-ctl-toggle .dd-label { display:none; }
+.dd-controls.collapsed .dd-ctl-toggle svg { transform:rotate(180deg); }
+.dd-request .dd-title,.dd-register .dd-title { margin:0; }
+.dd-fold { display:block; background:transparent; border-radius:0; overflow:visible; }
+.dd-fold > .collapse-title { min-height:40px; padding:8px 32px 8px 16px;
+  font-size:15px; line-height:24px; font-weight:600; cursor:pointer; }
+.dd-fold > .collapse-title:hover { background:var(--dd-hover); }
+.dd-fold > .collapse-content { padding:0 16px 16px; }
+.dd-fold:not([open]) > .collapse-content { display:none; }
+.dd-fold,.dd-fold .collapse-content,.dd-fold .collapse-title::after,
+.dd-fold::details-content { transition:none; }
+#req-form { gap:8px; }
+#req-form > label { color:var(--dd-muted); }
+#req-form > .btn-primary { margin-top:8px; }
+/* Pinned issues: chips sit above their field, so only the field keeps the 36px control height. */
+.dd-tags { display:flex; flex-wrap:wrap; gap:4px; }
+.dd-tags:empty { display:none; }
+.dd-tag { display:inline-flex; align-items:center; gap:4px; max-width:100%; height:24px;
+  padding:0 4px 0 6px; border-radius:2px; font-size:12px; line-height:24px;
+  background:var(--color-base-300); color:var(--color-base-content); }
+.dd-tag > span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dd-tag-x { flex:none; width:16px; height:16px; padding:0; border:0; border-radius:2px;
+  background:transparent; color:var(--dd-muted); font-size:13px; line-height:16px; cursor:pointer;
+  transition:opacity 120ms linear,background-color 120ms linear; }
+.dd-tag-x:hover { background:var(--dd-hover); color:var(--color-base-content); }
+.dd-tag-input::placeholder { font-style:italic; color:color-mix(in srgb,var(--dd-muted) 55%,var(--color-base-100)); }
+.join:has([data-preset]) { display:flex; width:100%; border-bottom:1px solid var(--dd-border); border-radius:0; }
+[data-preset].btn { flex:1; padding-inline:4px; background:transparent; color:var(--dd-muted);
+  border:0; border-bottom:2px solid transparent; border-radius:0; box-shadow:none; margin:0; }
+[data-preset].btn:hover { background:var(--dd-hover); }
+[data-preset].btn-active { color:var(--color-base-content); border-bottom-color:var(--color-primary); font-weight:600; }
+
+/* Generated company threads: open company strip, dates in a register, inline status. */
+#req-list { gap:0; }
+#req-list > div:has(> [data-company]) { border:0 !important; border-bottom:1px solid var(--dd-border) !important; border-radius:0; }
+#req-list [data-company] { padding-inline:8px; border-radius:2px; }
+#req-list [data-company]:hover { background:var(--dd-hover); }
+#req-list [data-company][aria-expanded="true"] { background:var(--dd-selected); color:var(--dd-selected-ink); }
+#req-list [data-company] > .badge { border:0; background:transparent; font-size:13px; padding:0; min-width:24px; }
+#req-list > div > div:has(> button) { padding:0; gap:0; }
+#req-list > div > div > button { background:transparent; padding:0 8px; border-radius:0;
+  border-bottom:1px solid var(--dd-border); font-size:13px; }
+#req-list > div > div > button:hover { background:var(--dd-hover); }
+#req-list > div > div > button > div:first-child { align-items:baseline; gap:4px; line-height:20px; }
+#req-list > div > div > button > .dd-meta { line-height:16px; }
+#req-list > div > div > button > div:first-child > span:first-child { letter-spacing:-.035em; white-space:nowrap; }
+.badge { font-size:13px; text-transform:capitalize; letter-spacing:0; font-weight:500; height:20px; min-height:20px; }
+.dd-b-done,.dd-b-wait,.dd-b-err,.dd-b-mute { border:0; border-radius:0; padding:0; background:transparent; color:inherit; }
+.dd-b-done::before,.dd-b-wait::before { content:""; width:4px; height:4px; background:var(--color-primary); flex:none; }
+.dd-b-wait::before { background:var(--color-warning); outline:1px solid var(--dd-muted); }
+.dd-b-err { text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--color-error); }
+#req-list form { margin:0; padding:16px 8px; gap:8px; border-top:0 !important; }
+#req-list form > .dd-meta:first-child { color:var(--color-base-content); font-weight:600; }
+#req-list form > label { align-items:flex-start; line-height:20px; padding-block:4px; }
+#req-list form > label > input { margin-top:2px; }
+#req-list form > .btn-primary { background:transparent; border:1px solid var(--color-primary); color:var(--color-base-content); }
+#req-list form > .btn-primary:hover { background:var(--dd-hover); }
+
+/* Report toolbar and sheet headers. Never apply redesign typography within export cards. */
+.dd-results { container-type:inline-size; }
+.dd-report { border:0; background:transparent; border-radius:0; }
+.dd-report > .dd-card-body { padding:0; gap:16px; }
+.dd-report-toolbar { min-height:40px; gap:8px; margin-top:8px; }
+.dd-report-actions { gap:16px; }
+#hyper-label { min-height:36px; gap:8px; font-weight:400; }
+.dd-copy { background:var(--color-primary); border-color:var(--color-primary); color:var(--color-primary-content); font-weight:600; }
+.dd-copy:hover { opacity:.88; }
+#report-stats:not(:empty) { font-size:13px; line-height:24px; padding-block:8px;
+  border-top:1px solid var(--dd-border); border-bottom:1px solid var(--dd-border); }
+#report-stats:has(+ #report-pinned:not(:empty)) { border-bottom:0; padding-bottom:0; }
+#report-pinned:not(:empty) { font-size:13px; line-height:24px; padding-bottom:8px;
+  border-bottom:1px solid var(--dd-border); }
+#report-stats:empty,#report-pinned:empty,#report-host:empty { display:none; }
+#report-empty:not(.hidden) { min-height:160px; display:flex; align-items:flex-start;
+  padding:24px 0; border-top:1px solid var(--dd-border); }
+#promote-note:not(.hidden) { padding:0 8px; min-height:36px; background:var(--color-accent); color:#1B2021; }
+#promote-undo { margin-left:auto; color:#1B2021; text-decoration:underline; text-underline-offset:3px; }
+#report-host { min-width:0; grid-template-columns:minmax(0,1fr); gap:24px; }
+#report-host details.collapse { display:block; min-width:0; }
+#report-host details[data-lang] { background:transparent; border:0 !important; border-radius:0 !important; overflow:visible; }
+#report-host details[data-lang] > .collapse-title { min-height:36px; padding:8px 32px 8px 8px;
+  background:var(--dd-work); border-top:2px solid var(--color-primary); border-radius:2px 2px 0 0;
+  font-size:13px; line-height:20px; font-weight:600; }
+#report-host details[data-lang] > .collapse-title:hover { background:var(--dd-hover); }
+#report-host details[data-lang] > .collapse-content { padding:8px 0 0; }
+#report-host details[data-lang] > .collapse-content > div { gap:24px; }
+#report-host details:not([open]) > .collapse-content { display:none; }
+#report-host summary:focus-visible { outline-offset:-2px; }
+#report-host.dd-single-language > details { grid-column:1 / -1; }
+/* Original report boundary behavior retained verbatim. */
+#report-card-ko,#report-card-en { font-variant-numeric:normal; overflow-wrap:anywhere; }
+[id^="report-card-"] a:focus-visible { outline-color:#51513D; }
+
+/* Candidate queue: rules separate articles; the + occupies its own action column. */
+#report-host [id^="report-card-"] + .dd-card { background:transparent; border:0; border-radius:0; }
+#report-host [id^="report-card-"] + .dd-card > .dd-card-body { padding:0; gap:0; }
+#report-host [id^="report-card-"] + .dd-card .dd-title { margin:0; padding-bottom:8px; font-size:13px; line-height:20px; font-weight:500; color:var(--dd-muted); }
+.dd-more-row { display:grid; grid-template-columns:minmax(0,1fr) 36px; gap:0;
+  align-items:start; border-top:1px solid var(--dd-border); }
+.dd-more-row:last-child { border-bottom:1px solid var(--dd-border); }
+#report-host .more-item { background:transparent; border:0 !important; border-radius:0 !important; }
+#report-host .more-item > .collapse-title { min-height:36px; padding:8px 24px 8px 0; line-height:20px; }
+#report-host .more-item > .collapse-title > div { font:500 13px/20px "IBM Plex Sans","Noto Sans KR",sans-serif !important; overflow-wrap:anywhere; }
+#report-host .more-item > .collapse-title::after { inset-inline-end:8px; }
+#report-host .more-item > .collapse-content { padding:0 8px 16px 0; }
+#report-host .more-item > .collapse-content > div { font:400 13px/20px "IBM Plex Sans","Noto Sans KR",sans-serif !important; }
+#report-host .more-item > .collapse-content ul { font:400 13px/20px "IBM Plex Sans","Noto Sans KR",sans-serif !important; color:var(--color-base-content) !important; }
+#report-host .more-item:hover { background:var(--dd-hover); }
+.dd-promote.btn { height:36px; width:36px; padding:0; font-size:20px; line-height:24px; font-weight:400; color:var(--color-primary); border-radius:0; }
+.dd-promote:hover { background:var(--dd-hover); }
+.dd-center:not(.hidden) { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+#login-msg { color:var(--color-base-content); }
+.alert { border-radius:2px; box-shadow:none; font-size:13px; }
+#report-host .collapse,#report-host .collapse-content,#report-host .collapse-title::after,
+#report-host details::details-content { transition:none; }
+
+@container (min-width:800px) {
+  .dd-cols { grid-template-columns:360px minmax(0,1fr); }
+  .dd-cols:has(> .dd-controls.collapsed) { grid-template-columns:40px minmax(0,1fr); }
+  .dd-controls.collapsed { width:40px; }
+  .dd-controls.collapsed .dd-ctl-toggle { width:40px; justify-content:center; padding:0; }
+}
+@container (min-width:560px) { #report-host { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:480px) {
+  .dd-shell { flex-direction:column; }
+  .dd-sidebar,.dd-sidebar.collapsed { width:100%; flex:none; border-right:0; }
+  .dd-sidebar-inner { height:56px; position:static; flex-direction:row; align-items:center;
+    gap:8px; padding:8px 24px; }
+  .dd-sidebar .dd-brand,.dd-sidebar .dd-label,.dd-sidebar #sb-toggle { display:none; }
+  .dd-sidebar nav { flex-direction:row; gap:8px; }
+  .dd-sidebar .dd-mod { width:40px; height:40px; flex:none; justify-content:center; padding:0; }
+  .dd-topbar { height:56px; padding-inline:24px; }
+  .dd-content { padding:24px; }
+  .dd-fold > .collapse-title { padding-inline:8px 32px; }
+  .dd-fold > .collapse-content { padding:0 8px 16px; }
+  .dd-topbar #theme-btn,.dd-topbar .logout-btn { min-width:40px; min-height:40px; padding-inline:8px; }
+  #req-list > div > div > button > div:first-child { flex-wrap:wrap; }
+  .dd-report-toolbar { align-items:flex-start; }
+  .dd-report-actions { gap:8px; }
+}
+@media (max-width:360px) {
+  .dd-report-actions { width:100%; justify-content:space-between; }
+  [data-preset].btn { letter-spacing:-.035em; }
+}
+@media (pointer:coarse) {
+  .dd-more-row { grid-template-columns:minmax(0,1fr) 40px; }
+  .dd-promote.btn { width:40px; height:40px; }
+}
+@media (prefers-reduced-motion:reduce) { button,a,summary,input,.btn { transition:none; } }
+</style>
+</head>
+<body class="min-h-screen bg-base-200">
+
+<!-- Copy from Supabase project settings > API. The anon key is public by design (protected by RLS). -->
+<script>
+const SUPABASE_URL = 'https://ffgtikltyjsqscujllhz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZ3Rpa2x0eWpzcXNjdWpsbGh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMTI3MTEsImV4cCI6MjEwNDg4ODcxMX0.akPaiEJnIM5cJATQOOfCEHos6FgsEsF2i2p1JF5FqAg';
+</script>
+
+<!-- Inline icons -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="i-news"><path d="M2.5 3.5h11v9h-11z"/><path d="M5 6h6M5 8.5h6M5 11h3.5"/></g>
+    <g id="i-chart"><path d="M2.5 13.5V8M6.2 13.5V3.5M9.8 13.5v-4M13.5 13.5v-7"/></g>
+    <g id="i-chev"><path d="M9.5 4.5L5.5 8l4 3.5"/></g>
+    <g id="i-theme"><path d="M13.5 9.6A5.5 5.5 0 016.4 2.5a5.6 5.6 0 107.1 7.1z"/></g>
+    <g id="i-out"><path d="M9.5 11.5L12.5 8 9.5 4.5M12.5 8H5M6.5 2.5h-4v11h4"/></g>
+  </defs>
+</svg>
+
+<!-- (a) Login -->
+<section id="scr-login" class="hidden dd-center">
+  <div class="dd-card w-full max-w-sm">
+    <div class="dd-card-body">
+      <h1 class="dd-page-title">Deal Desk</h1>
+      <p class="dd-muted">We'll send a magic link to your invited email.</p>
+      <input id="login-email" type="email" placeholder="name@example.com" class="input input-sm w-full" autocomplete="email">
+      <button id="login-btn" class="btn btn-sm btn-primary w-full">Send magic link</button>
+      <p id="login-msg" class="hidden text-success">Check your inbox. Click the link to sign in.</p>
+      <p id="login-err" class="hidden text-error"></p>
+    </div>
+  </div>
+</section>
+
+<!-- (b) Not allowed -->
+<section id="scr-denied" class="hidden dd-center">
+  <div class="dd-card w-full max-w-sm">
+    <div class="dd-card-body">
+      <h2 class="dd-title">Access required</h2>
+      <p>Only invited accounts can sign in. Please send your email to the administrator.</p>
+      <p id="denied-email" class="dd-muted"></p>
+      <button id="denied-back" class="btn btn-sm btn-ghost">Back</button>
+    </div>
+  </div>
+</section>
+
+<!-- (c) Main -->
+<section id="scr-main" class="hidden">
+ <div class="dd-shell">
+
+  <aside id="sidebar" class="dd-sidebar">
+   <div class="dd-sidebar-inner">
+    <div class="dd-brand"><span class="dd-brand-text">Deal Desk</span><span class="dd-brand-mini">DD</span></div>
+    <nav class="flex flex-col gap-1" style="min-width:0">
+      <span class="dd-mod dd-active" aria-current="page" title="Newsrun Tracker">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-news"/></svg>
+        <span class="dd-label">Newsrun Tracker</span>
+      </span>
+      <a id="nav-financials" class="dd-mod" href="../financials/" title="Financials from DART" aria-label="Financials from DART">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chart"/></svg>
+        <span class="dd-label">Financials from DART</span>
+      </a>
+    </nav>
+    <button type="button" id="sb-toggle" class="dd-mod" title="Collapse sidebar" aria-label="Collapse sidebar">
+      <svg id="sb-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chev"/></svg>
+      <span class="dd-label">Collapse</span>
+    </button>
+   </div>
+  </aside>
+
+  <div class="dd-main">
+    <header class="dd-topbar">
+      <span id="module-title" class="dd-page-title flex-1 truncate">Newsrun Tracker</span>
+      <span id="nav-email" class="dd-muted hidden sm:inline truncate" style="max-width:220px"></span>
+      <button id="theme-btn" class="btn btn-sm btn-ghost" title="Toggle theme" aria-label="Toggle theme">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-theme"/></svg>
+      </button>
+      <button class="btn btn-sm btn-ghost logout-btn" title="Log out">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-out"/></svg>
+        <span class="hidden sm:inline">Log out</span>
+      </button>
+    </header>
+
+    <main class="dd-content">
+      <div id="mod-newsrun" class="dd-cols">
+        <div class="dd-controls flex flex-col gap-4" style="min-width:0">
+          <button type="button" id="ctl-toggle" class="dd-ctl-toggle" title="Hide requests" aria-label="Hide requests" aria-controls="ctl-panel" aria-expanded="true">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chev"/></svg>
+            <span class="dd-label">Hide requests</span>
+          </button>
+          <div id="ctl-panel" class="flex flex-col gap-4" style="min-width:0">
+          <div class="dd-card dd-request">
+            <details class="collapse collapse-arrow dd-fold" open>
+              <summary class="collapse-title dd-title">New request</summary>
+              <div class="collapse-content dd-card-body">
+              <form id="req-form" class="flex flex-col gap-2">
+                <label for="f-company">Target company</label>
+                <input id="f-company" type="text" class="input input-sm w-full" placeholder="Samsung Electronics" required>
+                <div class="join">
+                  <button type="button" data-preset="1" class="btn btn-sm join-item">Last 24h</button>
+                  <button type="button" data-preset="7" class="btn btn-sm join-item">Last 7 days</button>
+                  <button type="button" data-preset="30" class="btn btn-sm join-item">Last 30 days</button>
+                </div>
+                <div class="flex gap-2">
+                  <input id="f-from" type="date" class="input input-sm w-full" required>
+                  <input id="f-to" type="date" class="input input-sm w-full" required>
+                </div>
+                <label for="f-tags">Issues to always include</label>
+                <div class="dd-tags"></div>
+                <input id="f-tags" type="text" maxlength="60" autocomplete="off" data-tags class="input input-sm w-full dd-tag-input" placeholder="Ex. Hostile M&amp;A attempt">
+                <div id="req-alert" class="hidden alert alert-error p-2"></div>
+                <button class="btn btn-sm btn-primary">Send request</button>
+              </form>
+              </div>
+            </details>
+          </div>
+
+          <div class="dd-card dd-register">
+            <details class="collapse collapse-arrow dd-fold" open>
+              <summary class="collapse-title dd-title">My requests</summary>
+              <div class="collapse-content dd-card-body">
+              <div id="req-list" class="flex flex-col gap-2"></div>
+              </div>
+            </details>
+          </div>
+          </div>
+        </div>
+
+        <div class="dd-results flex flex-col gap-4" style="min-width:0">
+          <div class="dd-card dd-report">
+            <div class="dd-card-body">
+              <div class="dd-report-toolbar flex items-center justify-between gap-2 flex-wrap">
+                <h2 class="dd-title">Report</h2>
+                <div class="dd-report-actions flex items-center gap-3">
+                  <label id="hyper-label" class="hidden flex items-center gap-1">
+                    <input id="f-hyperlink" type="checkbox" class="checkbox checkbox-sm" checked> Hyperlink
+                  </label>
+                  <button id="copy-ko" class="btn btn-sm dd-copy hidden">Copy Korean</button>
+                  <button id="copy-en" class="btn btn-sm dd-copy hidden">Copy English</button>
+                </div>
+              </div>
+              <div id="report-empty" class="dd-muted">Select a completed run from My requests to review its news.</div>
+              <div id="report-stats" class="dd-muted"></div>
+              <div id="report-pinned" class="dd-muted"></div>
+              <div id="promote-note" class="hidden flex items-center gap-2">
+                <span id="promote-message" role="status" class="dd-meta"></span>
+                <button id="promote-undo" type="button" class="btn btn-sm btn-ghost">
+                  Undo
+                </button>
+              </div>
+              <div id="report-host" class="grid gap-4 items-start"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+ </div>
+</section>
+
+<div id="toast" class="hidden toast toast-end"><div class="alert alert-success"><span id="toast-msg"></span></div></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const demo = new URLSearchParams(location.search).get('demo') === '1';
+const sb = demo ? null : supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* Theme */
+const root = document.documentElement;
+try { root.dataset.theme = /dark|business/.test(localStorage.nrTheme || '') ? 'deal-dark' : 'deal'; } catch {}
+function paintThemeState() {
+  $('theme-btn').setAttribute('aria-label', 'Dark theme');
+  $('theme-btn').setAttribute(
+    'aria-pressed', String(root.dataset.theme === 'deal-dark')
+  );
+}
+paintThemeState();
+$('theme-btn').onclick = () => {
+  const t = root.dataset.theme === 'deal-dark' ? 'deal' : 'deal-dark';
+  root.dataset.theme = t;
+  paintThemeState();
+  try { localStorage.nrTheme = t; } catch {}
+};
+
+/* Sidebar collapse */
+const sidebar = $('sidebar');
+const paintSidebar = () => {
+  const c = sidebar.classList.contains('collapsed');
+  $('sb-icon').style.transform = c ? 'rotate(180deg)' : '';
+  $('sb-toggle').title = c ? 'Expand sidebar' : 'Collapse sidebar';
+  $('sb-toggle').setAttribute('aria-expanded', String(!c));
+  $('sb-toggle').setAttribute('aria-controls', 'sidebar');
+  $('sb-toggle').setAttribute(
+    'aria-label', c ? 'Expand sidebar' : 'Collapse sidebar'
+  );
+};
+try { sidebar.classList.toggle('collapsed', localStorage.nrSidebar === '1'); } catch {}
+paintSidebar();
+$('sb-toggle').onclick = () => {
+  const c = sidebar.classList.toggle('collapsed');
+  try { localStorage.nrSidebar = c ? '1' : '0'; } catch {}
+  paintSidebar();
+};
+
+/* Request column collapse */
+const ctl = document.querySelector('#mod-newsrun > .dd-controls');
+const paintCtl = () => {
+  const c = ctl.classList.contains('collapsed');
+  const t = c ? 'Show requests' : 'Hide requests';
+  $('ctl-toggle').title = t;
+  $('ctl-toggle').setAttribute('aria-label', t);
+  $('ctl-toggle').setAttribute('aria-expanded', String(!c));
+  $('ctl-toggle').querySelector('.dd-label').textContent = t;
+};
+try { ctl.classList.toggle('collapsed', localStorage.nrControls === '1'); } catch {}
+paintCtl();
+$('ctl-toggle').onclick = () => {
+  const c = ctl.classList.toggle('collapsed');
+  try { localStorage.nrControls = c ? '1' : '0'; } catch {}
+  paintCtl();
+};
+
+/* Accessible names / states that the markup cannot express statically */
+$('login-email').setAttribute('aria-label', 'Email address');
+document.querySelector('.logout-btn').setAttribute('aria-label', 'Log out');
+
+$('toast-msg').setAttribute('role', 'status');
+$('toast-msg').setAttribute('aria-atomic', 'true');
+
+const show = id => ['scr-login', 'scr-denied', 'scr-main'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+let toastTimer;
+function toast(msg) {
+  $('toast-msg').textContent = msg;
+  $('toast').classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $('toast').classList.add('hidden'), 1800);
+}
+
+/* Date presets (always KST, regardless of browser timezone) */
+const kstDate = new Intl.DateTimeFormat('en-CA', {
+  timeZone:'Asia/Seoul',
+  year:'numeric', month:'2-digit', day:'2-digit'
+});
+
+const ymd = back => {
+  const parts = Object.fromEntries(
+    kstDate.formatToParts(new Date()).map(p => [p.type, p.value])
+  );
+  const date = new Date(`${parts.year}-${parts.month}-${parts.day}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() - back);
+  return date.toISOString().slice(0, 10);
+};
+
+function wirePresets(scope, fromEl, toEl) {
+  const btns = [...scope.querySelectorAll('[data-preset]')];
+  const set = days => {
+    fromEl.value = ymd(days === 1 ? 1 : days - 1);
+    toEl.value = ymd(0);
+    btns.forEach(b => {
+      const active = +b.dataset.preset === days;
+      b.classList.toggle('btn-active', active);
+      b.setAttribute('aria-pressed', String(active));
+    });
+    toEl.min = fromEl.value;
+    fromEl.max = toEl.value;
+  };
+  btns.forEach(b => b.onclick = () => set(+b.dataset.preset));
+
+  fromEl.setAttribute('aria-label', 'Start date');
+  toEl.setAttribute('aria-label', 'End date');
+
+  [fromEl, toEl].forEach(input => input.addEventListener('input', () => {
+    btns.forEach(b => {
+      b.classList.remove('btn-active');
+      b.setAttribute('aria-pressed', 'false');
+    });
+    toEl.min = fromEl.value;
+    fromEl.max = toEl.value;
+  }));
+
+  set(7);
+}
+wirePresets($('req-form'), $('f-from'), $('f-to'));
+
+/* One window, one company: every request/report path validates through these. */
+function oneCompany(companies) {
+  if (!Array.isArray(companies) || companies.length !== 1 ||
+      typeof companies[0] !== 'string' ||
+      !companies[0].trim() ||
+      companies[0] !== companies[0].trim() ||
+      companies[0].includes(',')) {
+    throw new Error('Exactly one company is required.');
+  }
+  return companies[0];
+}
+
+function assertReport(content, req) {
+  const company = oneCompany(req?.companies);
+  if (!Array.isArray(content) || content.length !== 1 ||
+      content[0]?.company !== company ||
+      !Array.isArray(content[0]?.items) ||
+      !Array.isArray(content[0]?.more ?? [])) {
+    throw new Error('Report must contain one matching company section.');
+  }
+  return company;
+}
+
+/* Pinned issues: Enter or comma commits a chip, Backspace on an empty field drops the last one. */
+const TAG_MAX = 10;
+const readTags = form => [...form.querySelectorAll('.dd-tag')].map(chip => chip.dataset.tag);
+
+function addTag(form, raw) {
+  const text = String(raw ?? '').trim().slice(0, 60);
+  const tags = readTags(form);
+  if (!text || tags.length >= TAG_MAX ||
+      tags.some(t => t.toLowerCase() === text.toLowerCase())) return;
+  const chip = document.createElement('span');
+  chip.className = 'dd-tag';
+  chip.dataset.tag = text;
+  const label = document.createElement('span');
+  label.textContent = text;
+  const remove = document.createElement('button');
+  remove.type = 'button';
+  remove.className = 'dd-tag-x';
+  remove.textContent = '×';
+  remove.setAttribute('aria-label', 'Remove ' + text);
+  remove.onclick = () => { chip.remove(); form.querySelector('[data-tags]').focus(); };
+  chip.append(label, remove);
+  form.querySelector('.dd-tags').append(chip);
+}
+
+function setTags(form, tags) {
+  form.querySelector('.dd-tags').textContent = '';
+  (Array.isArray(tags) ? tags : []).forEach(t => addTag(form, t));
+}
+
+function wireTags(form) {
+  const input = form.querySelector('[data-tags]');
+  input.onkeydown = e => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag(form, input.value);
+      input.value = '';
+    } else if (e.key === 'Backspace' && !input.value) {
+      form.querySelector('.dd-tags').lastElementChild?.remove();
+    }
+  };
+}
+wireTags($('req-form'));
+
+/* One insert path for both the main form and the per-thread follow-up. Returns an error message or null. */
+async function sendRequest(company, from, to, excludeSeen, mustInclude = []) {
+  company = typeof company === 'string' ? company.trim() : '';
+  try { oneCompany([company]); }
+  catch (e) { return e.message; }
+  if (!from || !to) return 'Choose a start and end date.';
+  if (from > to) return 'Start date must be on or before end date.';
+  if (demo) { toast('Request submitted'); return null; }
+  const { error } = await sb.from('requests').insert({
+    email: me, companies: [company], date_from: from, date_to: to, exclude_seen: excludeSeen,
+    must_include: mustInclude
+  });
+  if (error) return /row-level security/i.test(error.message) ? 'This account is not allowed.' : error.message;
+  toast('Request submitted');
+  loadRequests();
+  return null;
+}
+
+/* Disable the submit button for the duration of an insert; surface rejected promises. */
+function guardSubmit(form) {
+  const submit = form.onsubmit;
+
+  form.onsubmit = async event => {
+    event.preventDefault();
+    if (form.dataset.busy) return;
+
+    const button = form.querySelector('button:not([type="button"])');
+    const alertBox = form.querySelector('.alert');
+
+    form.dataset.busy = '1';
+    form.setAttribute('aria-busy', 'true');
+    button.disabled = true;
+
+    try {
+      await submit(event);
+    } catch {
+      alertBox.textContent = 'Request failed. Please try again.';
+      alertBox.classList.remove('hidden');
+    } finally {
+      delete form.dataset.busy;
+      form.removeAttribute('aria-busy');
+      button.disabled = false;
+    }
+  };
+}
+
+$('req-form').onsubmit = async e => {
+  e.preventDefault();
+  const alertBox = $('req-alert');
+  alertBox.classList.add('hidden');
+  const msg = await sendRequest($('f-company').value.trim(), $('f-from').value, $('f-to').value, false, readTags($('req-form')));
+  if (msg) { alertBox.textContent = msg; alertBox.classList.remove('hidden'); }
+  else { $('f-company').value = ''; setTags($('req-form'), []); }
+};
+guardSubmit($('req-form'));
+
+/* Auth: allowlist = Supabase "Invite user" (signups OFF). Uninvited emails are rejected here. */
+let me = null, channel = null;
+$('denied-back').onclick = () => show('scr-login');
+
+if (!demo) {
+  $('login-btn').onclick = async () => {
+    const email = $('login-email').value.trim();
+    if (!email) return;
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false }
+    });
+    if (error && /signup|not allowed|not authorized|not found/i.test(error.message)) {
+      $('denied-email').textContent = email;
+      return show('scr-denied');
+    }
+    $('login-msg').classList.toggle('hidden', !!error);
+    $('login-err').classList.toggle('hidden', !error);
+    if (error) $('login-err').textContent = error.message;
+  };
+  document.querySelectorAll('.logout-btn').forEach(b => b.onclick = async () => { await sb.auth.signOut(); location.reload(); });
+
+  const boot = session => {
+    if (!session) return show('scr-login');
+    me = session.user.email;
+    $('nav-email').textContent = me;
+    show('scr-main');
+    loadRequests();
+    if (!channel) channel = sb.channel('reqs')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'requests', filter: 'email=eq.' + me }, loadRequests)
+      .subscribe();
+  };
+  sb.auth.getSession().then(({ data }) => boot(data.session));
+  sb.auth.onAuthStateChange((_e, s) => boot(s));
+}
+
+/* Requests, grouped by company (chat-thread style) */
+const BADGE = { pending: 'dd-b-wait', running: 'dd-b-wait', done: 'dd-b-done', error: 'dd-b-err' };
+let openCompany = null;
+let reqs = [];
+const followUpForms = new Map();
+let requestsVersion = 0;
+let reportVersion = 0;
+
+async function loadRequests() {
+  const version = ++requestsVersion;
+  try {
+    const { data, error } = await sb.from('requests')
+      .select('*').order('created_at', { ascending: false });
+
+    if (version !== requestsVersion) return;
+    if (error) throw error;
+
+    reqs = data || [];
+    renderRequests();
+  } catch {
+    if (version === requestsVersion) toast('Could not refresh requests');
+  }
+}
+
+function renderRequests() {
+  if (lastReport) {
+    const current = reqs.find(r => r.id === lastReport.req.id);
+    try {
+      if (oneCompany(current?.companies) !== openCompany)
+        throw new Error('Company changed.');
+    } catch { clearReport(); }
+  }
+  const host = $('req-list');
+  const focused = host.contains(document.activeElement)
+    ? document.activeElement
+    : null;
+  host.textContent = '';
+  const groups = new Map();
+  reqs.forEach(r => {
+    let name;
+    try { name = oneCompany(r.companies); }
+    catch { return; } // Do not place an invalid request in any company thread.
+    if (!groups.has(name)) groups.set(name, []);
+    groups.get(name).push(r);
+  });
+  if (!groups.size) {
+    const empty = document.createElement('div');
+    empty.className = 'dd-muted';
+    empty.textContent = 'No requests yet.';
+    host.append(empty);
+    return;
+  }
+  groups.forEach((list, name) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'rounded';
+    wrap.style.border = '1px solid var(--dd-border)';
+
+    const head = document.createElement('button');
+    head.className = 'dd-row w-full text-left px-2 justify-between gap-2 hover:bg-base-200 rounded';
+    const nameEl = document.createElement('span');
+    nameEl.className = 'font-medium truncate';
+    nameEl.textContent = name;
+    const count = document.createElement('span');
+    count.className = 'badge badge-sm dd-b-mute';
+    count.textContent = list.length;
+    head.append(nameEl, count);
+    head.dataset.company = name;
+    head.setAttribute('aria-expanded', String(openCompany === name));
+
+    head.onclick = () => {
+      openCompany = openCompany === name ? null : name;
+      clearReport();
+      renderRequests();
+      [...$('req-list').querySelectorAll('[data-company]')]
+        .find(b => b.dataset.company === name)?.focus({ preventScroll: true });
+    };
+    wrap.append(head);
+
+    if (openCompany === name) {
+      const thread = document.createElement('div');
+      thread.className = 'flex flex-col gap-1 px-2 pb-2';
+      list.forEach(r => {
+        const row = document.createElement('button');
+        row.className = 'text-left rounded bg-base-200 px-2 py-1 hover:bg-base-300';
+        row.style.minHeight = '36px';
+        const top = document.createElement('div');
+        top.className = 'flex items-center justify-between gap-2';
+        const range = document.createElement('span');
+        range.textContent = `${r.date_from} ~ ${r.date_to}`;
+        const badge = document.createElement('span');
+        badge.className = 'badge badge-sm ' + (BADGE[r.status] || 'dd-b-mute');
+        badge.textContent = r.status;
+        top.append(range, badge);
+        const sub = document.createElement('div');
+        sub.className = 'dd-muted dd-meta';
+        sub.textContent = String(r.created_at || '').slice(0, 10);
+        row.append(top, sub);
+        if (r.must_include?.length) {
+          const pinned = document.createElement('div');
+          pinned.className = 'dd-muted dd-meta';
+          pinned.textContent = 'Issues: ' + r.must_include.join(', ');
+          row.append(pinned);
+        }
+        if (r.status === 'error' && r.error) {
+          const e = document.createElement('div');
+          e.className = 'dd-meta text-error';
+          e.textContent = r.error;
+          row.append(e);
+        }
+        if (r.status === 'done') row.onclick = () => openReport(r);
+        thread.append(row);
+      });
+      wrap.append(thread, followUpForm(name, list[0]));
+    }
+    host.append(wrap);
+  });
+  if (focused && host.contains(focused)) focused.focus({ preventScroll: true });
+}
+
+/* Follow-up request for one company thread. Markup below is static (company name never goes into HTML). */
+function followUpForm(company, latest) {
+  const cached = followUpForms.get(company);
+  // Rebuilt when the thread gains a newer request, so the pinned issues stay in sync.
+  if (cached && cached.dataset.latest === String(latest?.id)) return cached;
+  const f = document.createElement('form');
+  f.className = 'flex flex-col gap-2 px-2 pb-2 pt-2';
+  f.style.borderTop = '1px solid var(--dd-border)';
+  f.innerHTML = `<div class="dd-meta font-medium dd-muted">Follow-up</div>
+    <div class="join">
+      <button type="button" data-preset="1" class="btn btn-xs join-item">Last 24h</button>
+      <button type="button" data-preset="7" class="btn btn-xs join-item">Last 7 days</button>
+      <button type="button" data-preset="30" class="btn btn-xs join-item">Last 30 days</button>
+    </div>
+    <div class="flex gap-2">
+      <input type="date" class="input input-sm w-full" required>
+      <input type="date" class="input input-sm w-full" required>
+    </div>
+    <div class="dd-meta dd-muted">Issues to always include</div>
+    <div class="dd-tags"></div>
+    <input type="text" maxlength="60" autocomplete="off" data-tags class="input input-sm w-full dd-tag-input" aria-label="Issues to always include" placeholder="Ex. Hostile M&amp;A attempt">
+    <label class="flex items-center gap-2 dd-meta">
+      <input type="checkbox" class="checkbox checkbox-sm" checked>
+      Exclude items already covered in past runs
+    </label>
+    <div class="hidden alert alert-error dd-meta p-2"></div>
+    <button class="btn btn-sm btn-primary">Send follow-up</button>`;
+  const [from, to] = f.querySelectorAll('input[type=date]');
+  const seen = f.querySelector('input[type=checkbox]');
+  const alertBox = f.querySelector('.alert');
+  wirePresets(f, from, to);
+  wireTags(f);
+  setTags(f, latest?.must_include);
+  f.dataset.latest = String(latest?.id);
+  f.onsubmit = async e => {
+    e.preventDefault();
+    alertBox.classList.add('hidden');
+    const msg = await sendRequest(company, from.value, to.value, seen.checked, readTags(f));
+    if (msg) { alertBox.textContent = msg; alertBox.classList.remove('hidden'); }
+  };
+  guardSubmit(f);
+  followUpForms.set(company, f);
+  return f;
+}
+
+async function openReport(req) {
+  if (demo) return toast('The sample report is already displayed');
+
+  clearReport();
+  const version = ++reportVersion;
+  for (const id of ['copy-ko', 'copy-en']) $(id).disabled = true;
+  $('report-host').setAttribute('aria-busy', 'true');
+
+  try {
+    const { data, error } = await sb.from('reports')
+      .select('content, stats').eq('request_id', req.id).maybeSingle();
+
+    if (version !== reportVersion) return;
+    if (error || !data) throw error || new Error('Missing report');
+
+    renderReport(data.content, data.stats, req);
+  } catch {
+    if (version === reportVersion) toast('Could not load the report');
+  } finally {
+    if (version === reportVersion) {
+      for (const id of ['copy-ko', 'copy-en']) $(id).disabled = !lastReport;
+      $('report-host').removeAttribute('aria-busy');
+    }
+  }
+}
+
+/* Report render (inline styles only: keeps formatting when pasted into Word/Outlook) */
+const el = (tag, style, text) => {
+  const n = document.createElement(tag);
+  if (style) n.setAttribute('style', style);
+  if (text != null) n.textContent = text;
+  return n;
+};
+const dot = d => String(d || '').replace(/-/g, '.');
+const safe = u => /^https?:\/\//i.test(u || '') ? u : '#';
+const link = (url, style, text) => {
+  const a = el('a', style, text);
+  a.href = safe(url);
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  return a;
+};
+
+let lastReport = null;
+
+function clearReport() {
+  ++reportVersion;
+  lastReport = null;
+  $('report-host').replaceChildren();
+  $('report-host').removeAttribute('aria-busy');
+  $('report-stats').textContent = '';
+  $('report-pinned').textContent = '';
+  $('report-empty').classList.remove('hidden');
+  for (const id of ['copy-ko', 'copy-en']) $(id).disabled = true;
+  for (const id of ['copy-ko', 'copy-en', 'hyper-label', 'promote-note'])
+    $(id).classList.add('hidden');
+}
+
+function renderReport(content, stats, req) {
+  let company;
+  try {
+    company = assertReport(content, req);
+    const current = reqs.find(r => r.id === req.id);
+    if (company !== openCompany ||
+        oneCompany(current?.companies) !== company) {
+      throw new Error('Report does not belong to the active company thread.');
+    }
+  } catch (e) {
+    clearReport();
+    toast(e.message);
+    return;
+  }
+  for (const id of ['copy-ko', 'copy-en']) $(id).disabled = false;
+  if (lastReport?.content !== content) {
+    $('promote-note').classList.add('hidden');
+  }
+  lastReport = { content, stats, req };
+  $('report-empty').classList.add('hidden');
+  for (const id of ['copy-ko', 'copy-en']) $(id).classList.remove('hidden');
+  $('hyper-label').classList.remove('hidden');
+
+  const head = [company, `${dot(req.date_from)} ~ ${dot(req.date_to)}`];
+  if (stats && stats.total != null) head.push(`Collected ${stats.total} / Selected ${(content || []).reduce((n, sec) => n + (sec.items || []).length, 0)}`);
+  $('report-stats').textContent = head.join(' · ');
+  $('report-pinned').textContent = req.must_include?.length
+    ? 'Pinned issues: ' + req.must_include.join(', ') : '';
+
+  const host = $('report-host');
+  const panels = [langPanel('ko', 'Korean', content), langPanel('en', 'English', content)];
+  host.textContent = '';
+  host.append(...panels);
+  syncGrid();
+}
+
+/* Exactly one panel open -> both rows go full width, so the open one is never stuck at half. */
+function syncGrid() {
+  const panels = [...$('report-host').querySelectorAll('details[data-lang]')];
+  const open = panels.filter(d => d.open);
+
+  $('report-host').classList.toggle('dd-single-language', open.length === 1);
+}
+
+function langPanel(lang, label, content) {
+  const d = document.createElement('details');
+  d.className = 'collapse collapse-arrow bg-base-200';
+  d.style.border = '1px solid var(--dd-border)';
+  d.style.borderRadius = '6px';
+  const prev = $('report-host').querySelector(`details[data-lang="${lang}"]`);
+  d.open = prev ? prev.open : true;
+  d.dataset.lang = lang;
+  const s = document.createElement('summary');
+  s.className = 'collapse-title font-medium';
+  s.textContent = label;
+  const content_ = document.createElement('div');
+  content_.className = 'collapse-content';
+  const inner = document.createElement('div');
+  inner.className = 'flex flex-col gap-4';
+  content_.append(inner);
+
+  const card = el('div', 'background:#fff;color:#000;padding:14pt;font:10pt Arial;border-radius:6px');
+  card.id = 'report-card-' + lang;
+  (content || []).forEach(sec => {
+    const name = lang === 'ko' ? sec.company : (sec.company_en || sec.company);
+    card.append(el('div', 'font:bold 11pt Arial;margin:10pt 0 6pt', name));
+    (sec.items || []).forEach(it => card.append(...itemNodes(it, lang)));
+  });
+  inner.append(card);
+  (content || []).forEach(sec => {
+    if (sec.more && sec.more.length) inner.append(moreBlock(sec.more, lang, sec));
+  });
+  d.append(s, content_);
+  // daisyUI's .collapse grid keeps closed content visible; CSS hides it now.
+  d.ontoggle = syncGrid;
+  return d;
+}
+
+const pick = (it, lang) => ({
+  title: lang === 'ko' ? it.title_ko : it.title_en,
+  press: lang === 'ko' ? it.press : (it.press_en || it.press),
+  bullets: (lang === 'ko' ? it.bullets_ko : it.bullets_en) || []
+});
+
+function itemNodes(it, lang) {
+  const gray = it.supplementary;
+  const color = gray ? '#707070' : '#000';
+  const p = pick(it, lang);
+  const text = (gray ? (lang === 'ko' ? '[보완 기사] ' : '[Supplementary] ') : '') + (p.title || '');
+  const line = el('div', 'margin-top:6pt');
+  const hyper = $('f-hyperlink').checked;
+  line.append(hyper
+    ? link(it.link, `font:bold 10pt Arial;color:${color};text-decoration:none`, text)
+    : el('span', `font:bold 10pt Arial;color:${color}`, text));
+  const nodes = [line];
+  if (!hyper) nodes.push(el('div', 'font:italic 8pt Arial;color:#555', it.link || ''));
+  nodes.push(el('div', `font:italic 8pt Arial;color:${color}`, `${p.press} | ${dot(it.date)}`));
+  if (p.bullets.length) nodes.push(bulletList(p.bullets, gray));
+  return nodes;
+}
+
+$('f-hyperlink').onchange = () => {
+  if (lastReport) renderReport(lastReport.content, lastReport.stats, lastReport.req);
+};
+
+function bulletList(bullets, gray) {
+  const ul = el('ul', `margin:2pt 0 6pt 14pt;padding:0;list-style-type:disc;font:8pt Arial${gray ? ';color:#707070' : ''}`);
+  bullets.forEach(b => {
+    const li = el('li', null, b.text);
+    if (b.sub && b.sub.length) {
+      const sub = el('ul', "list-style-type:'- ';margin-left:12pt;padding:0");
+      b.sub.forEach(s => sub.append(el('li', null, s)));
+      li.append(sub);
+    }
+    ul.append(li);
+  });
+  return ul;
+}
+
+/* "more" items live outside #report-card so they are not copied. */
+function moreBlock(list, lang, sec) {
+  const card = document.createElement('div');
+  card.className = 'dd-card';
+  const body = document.createElement('div');
+  body.className = 'dd-card-body';
+  const h = document.createElement('h2');
+  h.className = 'dd-title';
+  h.textContent = 'More';
+  body.append(h);
+  list.forEach(it => {
+    const p = pick(it, lang);
+    const d = document.createElement('details');
+    d.className = 'collapse collapse-arrow bg-base-200 more-item';
+    d.style.border = '1px solid var(--dd-border)';
+    d.style.borderRadius = '4px';
+    const s = document.createElement('summary');
+    s.className = 'collapse-title';
+    s.append(el('div', 'font:bold 10pt Arial', p.title));
+    const inner = document.createElement('div');
+    inner.className = 'collapse-content';
+    inner.append(el(
+      'div',
+      'font:italic 8pt Arial;color:var(--dd-muted);margin-bottom:4pt',
+      `${p.press || ''} | ${dot(it.date)}`
+    ));
+    if (p.bullets.length) inner.append(bulletList(p.bullets, it.supplementary));
+    d.append(s, inner);
+
+    const row = document.createElement('div');
+    row.className = 'dd-more-row';
+
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'btn btn-sm btn-ghost dd-promote';
+    add.textContent = '+';
+    add.title = 'Add to report';
+    add.setAttribute('aria-label', `Add to report: ${p.title}`);
+    add.onclick = () => promoteArticle(sec, it, lang);
+
+    row.append(d, add);
+    body.append(row);
+  });
+  card.append(body);
+  return card;
+}
+
+/* Session-local promotion: moves a More article into the company's report in both languages. */
+function promoteArticle(sec, it, lang) {
+  const report = lastReport;
+  const index = sec.more.indexOf(it);
+  if (index < 0) return;
+
+  const previousItems = [...(sec.items || [])];
+  const previousMore = [...sec.more];
+
+  sec.more.splice(index, 1);
+  (sec.items ||= []).push(it);
+
+  const redraw = () => {
+    renderReport(report.content, report.stats, report.req);
+    $('report-host')
+      .querySelector(`details[data-lang="${lang}"] > summary`)
+      ?.focus({ preventScroll: true });
+  };
+
+  redraw();
+  $('promote-message').textContent = 'Added to both languages.';
+  $('promote-note').classList.remove('hidden');
+
+  $('promote-undo').onclick = () => {
+    if (lastReport?.content !== report.content) return;
+    sec.items = previousItems;
+    sec.more = previousMore;
+    redraw();
+    $('promote-note').classList.add('hidden');
+    toast('Article returned to More');
+  };
+}
+
+/* Copy formatted */
+
+/* Plain text comes from the report JSON: a detached clone's innerText collapses line breaks. */
+function reportPlainText(langs) {
+  return langs.map(lang => lastReport.content.map(sec => {
+    const lines = [lang === 'ko' ? sec.company : (sec.company_en || sec.company)];
+
+    for (const it of sec.items || []) {
+      const p = pick(it, lang);
+      const prefix = it.supplementary
+        ? (lang === 'ko' ? '[보완 기사] ' : '[Supplementary] ')
+        : '';
+
+      lines.push('', prefix + (p.title || ''));
+      if (!$('f-hyperlink').checked) lines.push(it.link || '');
+      lines.push(`${p.press || ''} | ${dot(it.date)}`);
+
+      for (const b of p.bullets) {
+        lines.push(`• ${b.text}`);
+        for (const sub of b.sub || []) lines.push(`  - ${sub}`);
+      }
+    }
+    return lines.join('\n');
+  }).join('\n\n')).join('\n\n');
+}
+
+/* Export clone: materialize typography onto every element and flatten lists to paragraphs. */
+function clipboardCard(source) {
+  const clone = source.cloneNode(true);
+  const originals = [source, ...source.querySelectorAll('*')];
+  const copies = [clone, ...clone.querySelectorAll('*')];
+
+  originals.forEach((original, i) => {
+    const cs = getComputedStyle(original);
+    const style = copies[i].style;
+
+    style.removeProperty('font');
+    Object.assign(style, {
+      fontFamily: 'Arial, sans-serif',
+      fontSize: `${parseFloat(cs.fontSize) * 0.75}pt`,
+      fontWeight: cs.fontWeight,
+      fontStyle: cs.fontStyle,
+      color: cs.color,
+      lineHeight: cs.lineHeight === 'normal'
+        ? 'normal'
+        : `${parseFloat(cs.lineHeight) * 0.75}pt`
+    });
+    copies[i].removeAttribute('id');
+  });
+
+  clone.querySelectorAll('ul').forEach(ul => {
+    if (ul.parentElement.closest('ul')) return;
+
+    const block = document.createElement('div');
+    block.style.margin = '2pt 0 6pt';
+
+    function flatten(list, depth) {
+      for (const li of list.children) {
+        const p = document.createElement('p');
+        p.style.cssText = li.style.cssText;
+        p.style.margin = `0 0 0 ${14 + depth * 12}pt`;
+        p.style.textIndent = '-8pt';
+        p.append(document.createTextNode(depth ? '- ' : '• '));
+
+        for (const child of li.childNodes) {
+          if (child.nodeName !== 'UL') p.append(child.cloneNode(true));
+        }
+        block.append(p);
+
+        for (const child of li.children) {
+          if (child.tagName === 'UL') flatten(child, depth + 1);
+        }
+      }
+    }
+
+    flatten(ul, 0);
+    ul.replaceWith(block);
+  });
+
+  clone.style.padding = '0';
+  clone.style.borderRadius = '0';
+  return clone;
+}
+
+async function copyLang(lang) {
+  const card = clipboardCard($('report-card-' + lang));
+  const plain = reportPlainText([lang]);
+  const label = lang === 'ko' ? 'Korean' : 'English';
+  try {
+    await navigator.clipboard.write([new ClipboardItem({
+      'text/html': new Blob([card.outerHTML], { type: 'text/html' }),
+      'text/plain': new Blob([plain], { type: 'text/plain' })
+    })]);
+    toast(`Copied ${label} with formatting`);
+  } catch {
+    try { await navigator.clipboard.writeText(plain); toast(`Copied ${label} as plain text; formatting unavailable`); }
+    catch { toast('Copy failed; select the report and copy manually'); }
+  }
+}
+$('copy-ko').onclick = () => copyLang('ko');
+$('copy-en').onclick = () => copyLang('en');
+
+/* demo=1: render samples without Supabase (visual QA) */
+if (demo) {
+  $('nav-email').textContent = 'demo@newsrun';
+  show('scr-main');
+  reqs = [
+    { id: 'd1', companies: ['삼성전자'], date_from: '2026-09-07', date_to: '2026-09-14', status: 'done', exclude_seen: true, must_include: ['Hostile M&A attempt'], created_at: '2026-09-14T09:00:00Z' },
+    { id: 'd2', companies: ['삼성전자'], date_from: '2026-08-31', date_to: '2026-09-06', status: 'error', error: 'collector timeout', exclude_seen: true, created_at: '2026-09-07T09:00:00Z' },
+    { id: 'd3', companies: ['현대차'], date_from: '2026-09-13', date_to: '2026-09-14', status: 'running', exclude_seen: false, created_at: '2026-09-14T08:00:00Z' }
+  ];
+  openCompany = '삼성전자';
+  renderRequests();
+  renderReport([
+    { company: '삼성전자', company_en: 'Samsung Electronics', items: [
+      { title_ko: '삼성전자, 파운드리 분사 검토', title_en: 'Samsung weighs foundry spin-off',
+        press: '한국경제', press_en: 'Korea Economic Daily', date: '2026.09.12', link: 'https://example.com/1', supplementary: false,
+        bullets_ko: [{ text: '파운드리 분사 검토, 적자 3년 누적 KRW4.2tn' }, { text: '이사회 4Q26 결정 예정', sub: ['자문사 선정 완료', '소수지분 매각안 병행'] }],
+        bullets_en: [{ text: 'Foundry spin-off under review; 3yr cumulative loss of KRW4.2tn' }, { text: 'Board decision targeted for 4Q26', sub: ['Advisers mandated', 'Minority stake sale considered in parallel'] }] },
+      { title_ko: '분사 시 지분 30% 외부 유치 거론', title_en: 'Up to 30% outside stake floated for the spun-off unit',
+        press: '매일경제', press_en: 'Maeil Business', date: '2026.09.13', link: 'https://example.com/2', supplementary: true,
+        bullets_ko: [{ text: '국부펀드 2곳 접촉, 밸류 KRW20tn 수준' }],
+        bullets_en: [{ text: 'Two sovereign funds approached at a ~KRW20tn valuation' }] }
+    ], more: [
+      { title_ko: '삼성전자 HBM4 양산 라인 증설', title_en: 'Samsung expands HBM4 mass-production lines',
+        press: '전자신문', press_en: 'ETNews', date: '2026.09.10', link: 'https://example.com/3', supplementary: false,
+        bullets_ko: [{ text: '평택 P4 라인 HBM4 전환, capex KRW3tn' }, { text: '2027년 양산 목표', sub: ['고객사 인증 진행 중'] }],
+        bullets_en: [{ text: 'Pyeongtaek P4 converted to HBM4; capex of KRW3tn' }, { text: 'Mass production targeted for 2027', sub: ['Customer qualification ongoing'] }] },
+      { title_ko: '삼성전자 파운드리 수주 잔고 확대', title_en: 'Foundry order backlog expands',
+        press: '조선비즈', press_en: 'ChosunBiz', date: '2026.09.09', link: 'https://example.com/5', supplementary: false,
+        bullets_ko: [{ text: '수주 잔고 KRW60tn, 전년 대비 +18%' }],
+        bullets_en: [{ text: 'Backlog of KRW60tn, +18% YoY' }] }
+    ], excluded: [{ title: '삼성전자 임직원 헌혈 캠페인', reason: '사내행사' }] }
+  ], { total: 184, selected: 2 }, reqs.find(r => r.id === 'd1'));
+}
+</script>
+</body>
+</html>

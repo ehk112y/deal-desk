@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en" data-theme="deal">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deal Desk</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5.7.37" rel="stylesheet" type="text/css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0"></script>
+<style>
+/* Deal Desk: the suite index. Same shell tokens as the two modules. */
+[data-theme="deal"] {
+  color-scheme:light;
+  --color-base-100:#FFFFFF;
+  --color-base-200:color-mix(in srgb,#E3DCC2 22%,#FFFFFF);
+  --color-base-300:#E3DCC2; --color-base-content:#1B2021;
+  --color-primary:#51513D; --color-primary-content:#FFFFFF;
+  --color-secondary:#A6A867; --color-secondary-content:#1B2021;
+  --color-accent:#E3DC95; --color-accent-content:#1B2021;
+  --color-neutral:#1B2021; --color-neutral-content:#E3DCC2;
+  --color-info:#51513D; --color-info-content:#FFFFFF;
+  --color-success:#A6A867; --color-success-content:#1B2021;
+  --color-warning:#E3DC95; --color-warning-content:#1B2021;
+  --color-error:#51513D; --color-error-content:#FFFFFF;
+  --dd-border:#E3DCC2; --dd-muted:#51513D;
+  --dd-work:color-mix(in srgb,#E3DCC2 36%,#FFFFFF);
+  --dd-hover:color-mix(in srgb,#E3DCC2 55%,#FFFFFF);
+  --radius-box:4px; --radius-field:2px; --radius-selector:2px;
+  --size-field:.25rem; --size-selector:.25rem;
+  --border:1px; --depth:0; --noise:0;
+}
+[data-theme="deal-dark"] {
+  color-scheme:dark;
+  --color-base-100:#1B2021;
+  --color-base-200:color-mix(in srgb,#1B2021 96%,#E3DCC2);
+  --color-base-300:#51513D; --color-base-content:#E3DCC2;
+  --color-primary:#A6A867; --color-primary-content:#1B2021;
+  --color-secondary:#51513D; --color-secondary-content:#E3DCC2;
+  --color-accent:#E3DC95; --color-accent-content:#1B2021;
+  --color-neutral:#1B2021; --color-neutral-content:#E3DCC2;
+  --color-info:#A6A867; --color-info-content:#1B2021;
+  --color-success:#A6A867; --color-success-content:#1B2021;
+  --color-warning:#E3DC95; --color-warning-content:#1B2021;
+  --color-error:#E3DC95; --color-error-content:#1B2021;
+  --dd-border:#51513D;
+  --dd-muted:color-mix(in srgb,#E3DCC2 82%,#1B2021);
+  --dd-work:color-mix(in srgb,#1B2021 92%,#E3DCC2);
+  --dd-hover:color-mix(in srgb,#51513D 45%,#1B2021);
+  --radius-box:4px; --radius-field:2px; --radius-selector:2px;
+  --size-field:.25rem; --size-selector:.25rem;
+  --border:1px; --depth:0; --noise:0;
+}
+
+body {
+  margin:0; font-family:"IBM Plex Sans","Noto Sans KR",sans-serif;
+  font-size:13px; line-height:1.45; font-variant-numeric:tabular-nums;
+  color:var(--color-base-content); background:var(--color-base-200);
+}
+.dd-title { font-size:15px; font-weight:600; line-height:24px; letter-spacing:-.015em; }
+.dd-page-title { font-size:20px; font-weight:600; line-height:24px; letter-spacing:-.025em; }
+.dd-muted { opacity:1; color:var(--dd-muted); }
+.dd-meta { font-size:13px; }
+button,a,input { transition:opacity 120ms linear,background-color 120ms linear; }
+.btn { font-family:inherit; font-size:13px; font-weight:500; border-radius:2px;
+  box-shadow:none; text-transform:none; height:36px; min-height:36px; padding-inline:12px;
+  transition:opacity 120ms linear,background-color 120ms linear; }
+.btn:active:not(:disabled) { transform:none; translate:none; scale:1; }
+.btn-primary { font-weight:600; }
+.input { height:36px; min-height:36px; font-size:13px; width:100%; border-radius:2px;
+  padding-inline:8px; background:var(--color-base-100); box-shadow:none;
+  border-color:color-mix(in srgb,var(--color-base-content) 40%,var(--color-base-100)); }
+.input::placeholder { opacity:1; color:var(--dd-muted); }
+:is(button,a,input):focus-visible { outline:2px solid var(--color-primary); outline-offset:2px; }
+.btn:disabled,.input:disabled { opacity:.5; }
+
+.dd-topbar { position:sticky; top:0; z-index:20; display:flex; align-items:center;
+  justify-content:flex-end; gap:8px; height:56px; padding:0 24px;
+  background:var(--color-base-100); border-bottom:1px solid var(--dd-border); }
+#nav-brand { flex:1 1 auto; min-width:0; }
+#theme-btn { border-left:1px solid var(--dd-border); border-radius:0; margin-left:8px; }
+.dd-content { max-width:1400px; width:100%; margin:0 auto; padding:24px; box-sizing:border-box; }
+.dd-card { background:var(--color-base-100); border:1px solid var(--dd-border); border-radius:4px; box-shadow:none; }
+.dd-card-body { display:flex; flex-direction:column; gap:8px; padding:16px; }
+.dd-center:not(.hidden) { min-height:calc(100vh - 56px); display:flex; align-items:center;
+  justify-content:center; padding:24px; box-sizing:border-box; }
+
+/* The desk: one rule per module, no card inside a card. */
+.dd-module { display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
+  min-height:36px; padding:12px 0; border-top:1px solid var(--dd-border); }
+.dd-module:last-child { border-bottom:1px solid var(--dd-border); }
+.dd-module > div { min-width:0; }
+.dd-module .dd-title { display:flex; align-items:center; gap:8px; }
+.dd-module .dd-title svg { flex:none; color:var(--dd-muted); }
+/* The page sits on base-200, where daisyUI's default .btn surface disappears. */
+.dd-module .btn { flex:none; min-width:72px; background:transparent;
+  border:1px solid var(--color-primary); color:var(--color-base-content); }
+.dd-module .btn:hover { background:var(--dd-hover); }
+
+@media (max-width:480px) {
+  .dd-topbar #theme-btn,.dd-topbar .logout-btn { min-width:40px; min-height:40px; padding-inline:8px; }
+}
+@media (prefers-reduced-motion:reduce) { button,a,input,.btn { transition:none; } }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- Copy from Supabase project settings > API. The anon key is public by design (protected by RLS). -->
+<script>
+const SUPABASE_URL = 'https://ffgtikltyjsqscujllhz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZ3Rpa2x0eWpzcXNjdWpsbGh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMTI3MTEsImV4cCI6MjEwNDg4ODcxMX0.akPaiEJnIM5cJATQOOfCEHos6FgsEsF2i2p1JF5FqAg';
+</script>
+
+<!-- Inline icons -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="i-news"><path d="M2.5 3.5h11v9h-11z"/><path d="M5 6h6M5 8.5h6M5 11h3.5"/></g>
+    <g id="i-chart"><path d="M2.5 13.5V8M6.2 13.5V3.5M9.8 13.5v-4M13.5 13.5v-7"/></g>
+    <g id="i-theme"><path d="M13.5 9.6A5.5 5.5 0 016.4 2.5a5.6 5.6 0 107.1 7.1z"/></g>
+    <g id="i-out"><path d="M9.5 11.5L12.5 8 9.5 4.5M12.5 8H5M6.5 2.5h-4v11h4"/></g>
+  </defs>
+</svg>
+
+<header class="dd-topbar">
+  <span id="nav-brand" class="dd-page-title truncate hidden">Deal Desk</span>
+  <span id="nav-email" class="dd-muted hidden sm:inline truncate" style="max-width:220px"></span>
+  <button id="theme-btn" class="btn btn-sm btn-ghost" title="Toggle theme" aria-label="Toggle theme">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-theme"/></svg>
+  </button>
+  <button id="logout-btn" class="btn btn-sm btn-ghost logout-btn hidden" title="Log out" aria-label="Log out">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-out"/></svg>
+    <span class="hidden sm:inline">Log out</span>
+  </button>
+</header>
+
+<!-- (a) Login -->
+<section id="scr-login" class="hidden dd-center">
+  <div class="dd-card w-full max-w-sm">
+    <div class="dd-card-body">
+      <h1 class="dd-page-title">Deal Desk</h1>
+      <p class="dd-muted">Sign in with your invited email.</p>
+      <input id="login-email" type="email" placeholder="name@example.com" class="input input-sm w-full" autocomplete="email" aria-label="Email address">
+      <button id="login-btn" class="btn btn-sm btn-primary w-full">Send sign-in link</button>
+      <p id="login-msg" class="hidden" role="status">Check your inbox. Click the link to sign in.</p>
+    </div>
+  </div>
+</section>
+
+<!-- (b) Desk -->
+<section id="scr-main" class="hidden">
+  <main class="dd-content">
+    <div class="dd-module">
+      <div>
+        <div class="dd-title">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-news"/></svg>
+          Newsrun Tracker
+        </div>
+        <div class="dd-muted">Company news, curated into a PE brief</div>
+        <div id="stat-newsrun" class="dd-muted dd-meta">&ndash;</div>
+      </div>
+      <a class="btn btn-sm" href="newsrun/" aria-label="Open Newsrun Tracker">Open</a>
+    </div>
+    <div class="dd-module">
+      <div>
+        <div class="dd-title">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chart"/></svg>
+          Financials from DART
+        </div>
+        <div class="dd-muted">3FS back data and Summary workbook from DART filings</div>
+        <div id="stat-financials" class="dd-muted dd-meta">&ndash;</div>
+      </div>
+      <a class="btn btn-sm" href="financials/" aria-label="Open Financials from DART">Open</a>
+    </div>
+  </main>
+</section>
+
+<script>
+const $ = id => document.getElementById(id);
+const demo = new URLSearchParams(location.search).get('demo') === '1';
+const sb = demo ? null : supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* Theme (shared with the modules through localStorage.nrTheme) */
+const root = document.documentElement;
+try { root.dataset.theme = /dark|business/.test(localStorage.nrTheme || '') ? 'deal-dark' : 'deal'; } catch {}
+const paintThemeState = () => $('theme-btn').setAttribute('aria-pressed', String(root.dataset.theme === 'deal-dark'));
+paintThemeState();
+$('theme-btn').onclick = () => {
+  const t = root.dataset.theme === 'deal-dark' ? 'deal' : 'deal-dark';
+  root.dataset.theme = t;
+  paintThemeState();
+  try { localStorage.nrTheme = t; } catch {}
+};
+
+function show(id) {
+  ['scr-login', 'scr-main'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+  // nav-email keeps its own `hidden sm:inline`; it is empty until a session exists.
+  ['nav-brand', 'logout-btn'].forEach(s => $(s).classList.toggle('hidden', id !== 'scr-main'));
+}
+
+/* One live figure per module, read with the signed-in user's session (RLS scopes the rows). */
+async function stat(table, el) {
+  try {
+    const { data, error } = await sb.from(table).select('status');
+    if (error) throw error;
+    const done = data.filter(r => r.status === 'done').length;
+    el.textContent = `${data.length} request${data.length === 1 ? '' : 's'} · ${done} done`;
+  } catch {
+    el.textContent = '';
+  }
+}
+
+/* demo=1: the signed-in layout with no figures, for visual QA only. */
+if (demo) {
+  $('nav-email').textContent = 'demo@dealdesk';
+  show('scr-main');
+} else {
+  $('login-btn').onclick = async () => {
+    const email = $('login-email').value.trim();
+    if (!email) return;
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false }
+    });
+    // Same answer either way: whether an address is invited must not leak from this screen.
+    if (error) console.warn('signInWithOtp:', error.message);
+    $('login-msg').classList.remove('hidden');
+  };
+  $('logout-btn').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+  const boot = session => {
+    if (!session) return show('scr-login');
+    $('nav-email').textContent = session.user.email;
+    show('scr-main');
+    stat('requests', $('stat-newsrun'));
+    stat('fin_requests', $('stat-financials'));
+  };
+  sb.auth.getSession().then(({ data }) => boot(data.session));
+  sb.auth.onAuthStateChange((_e, s) => boot(s));
+}
+</script>
+</body>
+</html>

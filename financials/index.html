@@ -1,0 +1,1117 @@
+<!doctype html>
+<html lang="en" data-theme="deal">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Financials from DART</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5.7.37" rel="stylesheet" type="text/css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0"></script>
+<style>
+/* Deal Desk shell, copied from the Newsrun Tracker page so both modules read as one suite. */
+[data-theme="deal"] {
+  color-scheme:light;
+  --color-base-100:#FFFFFF;
+  --color-base-200:color-mix(in srgb,#E3DCC2 22%,#FFFFFF);
+  --color-base-300:#E3DCC2; --color-base-content:#1B2021;
+  --color-primary:#51513D; --color-primary-content:#FFFFFF;
+  --color-secondary:#A6A867; --color-secondary-content:#1B2021;
+  --color-accent:#E3DC95; --color-accent-content:#1B2021;
+  --color-neutral:#1B2021; --color-neutral-content:#E3DCC2;
+  --color-info:#51513D; --color-info-content:#FFFFFF;
+  --color-success:#A6A867; --color-success-content:#1B2021;
+  --color-warning:#E3DC95; --color-warning-content:#1B2021;
+  --color-error:#51513D; --color-error-content:#FFFFFF;
+  --dd-border:#E3DCC2; --dd-muted:#51513D;
+  --dd-work:color-mix(in srgb,#E3DCC2 36%,#FFFFFF);
+  --dd-selected:#51513D; --dd-selected-ink:#FFFFFF;
+  --dd-hover:color-mix(in srgb,#E3DCC2 55%,#FFFFFF);
+  --radius-box:4px; --radius-field:2px; --radius-selector:2px;
+  --size-field:.25rem; --size-selector:.25rem;
+  --border:1px; --depth:0; --noise:0;
+}
+[data-theme="deal-dark"] {
+  color-scheme:dark;
+  --color-base-100:#1B2021;
+  --color-base-200:color-mix(in srgb,#1B2021 96%,#E3DCC2);
+  --color-base-300:#51513D; --color-base-content:#E3DCC2;
+  --color-primary:#A6A867; --color-primary-content:#1B2021;
+  --color-secondary:#51513D; --color-secondary-content:#E3DCC2;
+  --color-accent:#E3DC95; --color-accent-content:#1B2021;
+  --color-neutral:#1B2021; --color-neutral-content:#E3DCC2;
+  --color-info:#A6A867; --color-info-content:#1B2021;
+  --color-success:#A6A867; --color-success-content:#1B2021;
+  --color-warning:#E3DC95; --color-warning-content:#1B2021;
+  --color-error:#E3DC95; --color-error-content:#1B2021;
+  --dd-border:#51513D;
+  --dd-muted:color-mix(in srgb,#E3DCC2 82%,#1B2021);
+  --dd-work:color-mix(in srgb,#1B2021 92%,#E3DCC2);
+  --dd-selected:#A6A867; --dd-selected-ink:#1B2021;
+  --dd-hover:color-mix(in srgb,#51513D 45%,#1B2021);
+  --radius-box:4px; --radius-field:2px; --radius-selector:2px;
+  --size-field:.25rem; --size-selector:.25rem;
+  --border:1px; --depth:0; --noise:0;
+}
+
+body {
+  margin:0; font-family:"IBM Plex Sans","Noto Sans KR",sans-serif;
+  font-size:13px; line-height:1.45; font-variant-numeric:tabular-nums;
+  color:var(--color-base-content);
+}
+label,.dd-label { font-weight:500; }
+.dd-title { font-size:15px; font-weight:600; line-height:24px; letter-spacing:-.015em; }
+.dd-page-title { font-size:20px; font-weight:600; line-height:24px; letter-spacing:-.025em; }
+.dd-muted { opacity:1; color:var(--dd-muted); }
+.dd-meta { font-size:13px; }
+button,a,summary,input,select { transition:opacity 120ms linear,background-color 120ms linear; }
+.btn { font-family:inherit; font-size:13px; font-weight:500; border-radius:2px;
+  box-shadow:none; text-transform:none; height:36px; min-height:36px; padding-inline:12px;
+  transition:opacity 120ms linear,background-color 120ms linear; }
+.btn:active:not(:disabled) { transform:none; translate:none; scale:1; }
+.btn-primary { font-weight:600; }
+.input,.select { height:36px; min-height:36px; font-size:13px; width:100%; border-radius:2px;
+  padding-inline:8px; background:var(--color-base-100); box-shadow:none;
+  border-color:color-mix(in srgb,var(--color-base-content) 40%,var(--color-base-100)); }
+.select { font-family:inherit; }
+.input::placeholder { opacity:1; color:var(--dd-muted); }
+input[type="number"].input { font-variant-numeric:tabular-nums; }
+input[type="number"] { appearance:textfield; -moz-appearance:textfield; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+.checkbox { border-radius:2px; width:16px; height:16px; flex:none; }
+:is(button,a,summary,input,select):focus-visible { outline:2px solid var(--color-primary); outline-offset:2px; }
+.btn:disabled,.input:disabled,.select:disabled { opacity:.5; }
+
+/* Fixed shell. Its navigation reads as a tool selector, with a narrow active rail. */
+.dd-shell { display:flex; min-height:100vh; align-items:stretch; }
+.dd-sidebar { width:220px; flex:0 0 220px; box-sizing:border-box;
+  background:#1B2021; color:#E3DCC2; border-right:1px solid #51513D; }
+.dd-sidebar-inner { position:sticky; top:0; height:100vh; box-sizing:border-box;
+  display:flex; flex-direction:column; gap:8px; padding:8px; }
+.dd-sidebar.collapsed { width:56px; flex:0 0 56px; }
+.dd-brand { display:flex; align-items:center; height:40px; padding:0 8px; margin-bottom:8px;
+  font-weight:600; font-size:15px; letter-spacing:-.015em; white-space:nowrap; overflow:hidden; }
+.dd-brand-mini { display:none; }
+.dd-sidebar.collapsed .dd-label,.dd-sidebar.collapsed .dd-brand-text { display:none; }
+.dd-sidebar.collapsed .dd-brand { justify-content:center; padding:0; }
+.dd-sidebar.collapsed .dd-brand-mini { display:block; font-size:13px; }
+.dd-mod { display:flex; align-items:center; gap:8px; height:36px; padding:0 8px; width:100%;
+  box-sizing:border-box; font-size:13px; font-weight:400; text-align:left; white-space:nowrap;
+  overflow:hidden; text-decoration:none;
+  border-radius:2px; border-left:2px solid transparent; background:transparent; color:inherit; cursor:pointer; }
+.dd-sidebar.collapsed .dd-mod { justify-content:center; padding:0; }
+.dd-mod:hover { background:#51513D; }
+.dd-mod.dd-active { background:#51513D; border-left-color:#E3DC95; color:#FFFFFF; font-weight:600; cursor:default; }
+.dd-mod svg { flex:none; }
+.dd-sidebar :is(button,a):focus-visible { outline-color:#E3DC95; }
+#sb-toggle { margin-top:auto; border-top:1px solid #51513D; border-radius:0; height:40px; }
+.dd-main { flex:1 1 auto; min-width:0; display:flex; flex-direction:column; container-type:inline-size; }
+.dd-topbar { position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:8px;
+  height:56px; padding:0 24px; background:var(--color-base-100); border-bottom:1px solid var(--dd-border); }
+#theme-btn { border-left:1px solid var(--dd-border); border-radius:0; margin-left:8px; }
+.dd-content { max-width:1400px; width:100%; margin:0 auto; padding:24px; box-sizing:border-box; }
+.dd-cols { display:grid; gap:24px; grid-template-columns:minmax(0,1fr); align-items:start; }
+.dd-row { min-height:36px; display:flex; align-items:center; }
+
+/* A single input work surface: request, catalog and register share one tinted column. */
+.dd-card { background:var(--color-base-100); border:1px solid var(--dd-border); border-radius:4px; box-shadow:none; }
+.dd-card-body { display:flex; flex-direction:column; gap:8px; padding:16px; }
+.dd-controls { background:var(--dd-work); border-radius:4px; gap:0; }
+.dd-controls .dd-card { background:transparent; border:0; border-radius:0; }
+.dd-controls .dd-card-body { gap:16px; }
+.dd-controls :is(.dd-editor,.dd-register) { border-top:1px solid var(--dd-border); }
+#ctl-panel { gap:0; }
+.dd-ctl-toggle { display:flex; align-items:center; gap:8px; height:36px; padding:0 8px; width:100%;
+  font-size:13px; color:var(--dd-muted); background:transparent; border:0; border-radius:2px;
+  cursor:pointer; white-space:nowrap; overflow:hidden; }
+.dd-ctl-toggle:hover { background:var(--dd-hover); }
+.dd-ctl-toggle svg { flex:none; }
+.dd-controls.collapsed #ctl-panel { display:none; }
+.dd-controls.collapsed .dd-ctl-toggle .dd-label { display:none; }
+.dd-controls.collapsed .dd-ctl-toggle svg { transform:rotate(180deg); }
+.dd-fold { display:block; background:transparent; border-radius:0; overflow:visible; }
+.dd-fold > .collapse-title { min-height:40px; padding:8px 32px 8px 16px;
+  font-size:15px; line-height:24px; font-weight:600; cursor:pointer; }
+.dd-fold > .collapse-title:hover { background:var(--dd-hover); }
+.dd-fold > .collapse-content { padding:0 16px 16px; }
+.dd-fold:not([open]) > .collapse-content { display:none; }
+.dd-fold,.dd-fold .collapse-content,.dd-fold .collapse-title::after,
+.dd-fold::details-content { transition:none; }
+#req-form { gap:8px; }
+#req-form > label { color:var(--dd-muted); }
+#req-form > .btn-primary { margin-top:8px; }
+.dd-field { display:flex; align-items:center; gap:8px; }
+.dd-field .input,.dd-field .select { width:auto; flex:1 1 0; min-width:0; }
+.dd-field .btn { flex:none; }
+#f-year-from,#f-year-to,#f-ltm-year { max-width:96px; }
+.alert { border-radius:2px; box-shadow:none; font-size:13px; }
+
+/* Add Metrics: a grouped catalog of 36px rows. Removal and order live in the table. */
+.dd-mrow { display:flex; align-items:center; gap:8px; height:36px; padding:0 4px;
+  border-bottom:1px solid var(--dd-border); }
+.dd-mrow:hover { background:var(--dd-hover); }
+.dd-mrow > label { flex:1 1 auto; min-width:0; display:flex; align-items:center; gap:8px;
+  height:36px; font-weight:400; cursor:pointer; }
+.dd-mrow > label:has(input:disabled) { cursor:default; color:var(--dd-muted); }
+.dd-mname { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dd-mact { flex:none; display:flex; }
+.dd-mact .btn { width:28px; height:28px; min-height:28px; padding:0; font-size:12px; line-height:1;
+  border:0; border-radius:2px; background:transparent; color:var(--dd-muted); }
+.dd-mact .btn:hover:not(:disabled) { background:var(--dd-hover); color:var(--color-base-content); }
+.dd-mact .tooltip::before { font-size:12px; line-height:16px; white-space:normal; width:200px;
+  text-align:left; border-radius:2px; }
+.dd-mgroup { padding:16px 4px 4px; font-weight:600; color:var(--dd-muted);
+  border-bottom:1px solid var(--dd-border); }
+#mx-list > .dd-mgroup:first-child { padding-top:4px; }
+.dd-custom { height:auto; padding:8px 0; gap:8px; border-bottom:0; }
+#mx-empty { padding:16px 4px; }
+
+/* Register: one request per row, status on the same line. */
+#req-list > button { background:transparent; padding:8px; border-radius:0; text-align:left;
+  border-bottom:1px solid var(--dd-border); font-size:13px; min-height:36px; }
+#req-list > button:first-child { border-top:1px solid var(--dd-border); }
+#req-list > button:hover { background:var(--dd-hover); }
+#req-list > button[aria-current="true"] { background:var(--dd-selected); color:var(--dd-selected-ink); }
+#req-list > button[aria-current="true"] .dd-muted { color:var(--dd-selected-ink); }
+.badge { font-size:13px; text-transform:capitalize; letter-spacing:0; font-weight:500; height:20px; min-height:20px; }
+.dd-b-done,.dd-b-wait,.dd-b-err,.dd-b-mute { border:0; border-radius:0; padding:0; background:transparent; color:inherit; }
+.dd-b-done::before,.dd-b-wait::before { content:""; width:4px; height:4px; background:var(--color-primary); flex:none; }
+.dd-b-wait::before { background:var(--color-warning); outline:1px solid var(--dd-muted); }
+.dd-b-err { text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--color-error); }
+
+/* The summary sheet is also the composer: unit in its corner, order and removal on the right. */
+.dd-results { container-type:inline-size; }
+.dd-report { border:0; background:transparent; border-radius:0; }
+.dd-report > .dd-card-body { padding:0; gap:16px; }
+.dd-report-toolbar { min-height:40px; gap:8px; margin-top:8px; }
+.dd-copy { background:var(--color-primary); border-color:var(--color-primary); color:var(--color-primary-content); font-weight:600; }
+.dd-copy:hover { opacity:.88; }
+#res-meta:not(:empty) { font-size:13px; line-height:24px; padding-block:8px;
+  border-top:1px solid var(--dd-border); border-bottom:1px solid var(--dd-border); }
+#res-meta:empty,#res-flags:empty { display:none; }
+#res-hint:not(.hidden) { padding-block:8px; border-top:1px solid var(--dd-border); }
+#res-status:not(.hidden) { display:flex; align-items:flex-start; padding:16px 0; }
+/* contain:paint keeps a wide table's overflow inside this scroller instead of scrolling the page. */
+.dd-sheet { overflow-x:auto; contain:paint; }
+table.dd-sum { border-collapse:collapse; width:100%; font-size:13px; font-variant-numeric:tabular-nums; }
+.dd-sum th,.dd-sum td { padding:0 8px; height:28px; white-space:nowrap; text-align:right; }
+.dd-sum thead th { background:var(--dd-work); font-weight:600; border-bottom:1px solid var(--dd-border); }
+.dd-sum td { border-bottom:1px solid var(--dd-border); }
+.dd-sum :is(th,td):first-child { text-align:left; font-weight:500; }
+.dd-sum tbody th { font-weight:500; background:transparent; border-bottom:1px solid var(--dd-border); }
+.dd-sum tr.dd-ratio :is(th,td) { color:var(--dd-muted); font-style:italic; }
+.dd-sum tr.dd-sub th:first-child { font-weight:400; padding-left:16px; }
+.dd-sum tr.dd-drag-over :is(th,td) { border-top:2px solid var(--color-primary); }
+.dd-sum tr[draggable="true"] th:first-child { cursor:grab; }
+.dd-unit-cell { padding:0 4px !important; }
+.dd-unit-cell .select { height:24px; min-height:24px; width:auto; font-size:12px; font-weight:600;
+  border:0; background-color:transparent; padding-inline:4px 20px; color:inherit; }
+.dd-ctrl-col { width:1%; }
+.dd-ctrl { display:flex; justify-content:flex-end; gap:0; }
+.dd-ctrl .btn { width:24px; height:24px; min-height:24px; padding:0; font-size:12px; line-height:1;
+  border:0; border-radius:2px; background:transparent; color:var(--dd-muted); }
+.dd-ctrl .btn:hover { background:var(--dd-hover); color:var(--color-base-content); }
+.dd-grip { cursor:grab; }
+.dd-flag { display:flex; gap:8px; align-items:baseline; padding:4px 0; border-bottom:1px solid var(--dd-border); }
+.dd-flag:first-child { border-top:1px solid var(--dd-border); }
+.dd-lvl { flex:none; min-width:56px; height:20px; padding:0 6px; border-radius:2px; font-size:12px;
+  line-height:20px; text-align:center; background:var(--color-base-300); color:var(--color-base-content); }
+.dd-lvl-missing { background:var(--color-warning); color:var(--color-warning-content); }
+.dd-lvl-ofs { background:var(--color-secondary); color:var(--color-secondary-content); }
+.dd-center:not(.hidden) { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+#login-msg { color:var(--color-base-content); }
+
+@container (min-width:800px) {
+  .dd-cols { grid-template-columns:360px minmax(0,1fr); }
+  .dd-cols:has(> .dd-controls.collapsed) { grid-template-columns:40px minmax(0,1fr); }
+  .dd-controls.collapsed { width:40px; }
+  .dd-controls.collapsed .dd-ctl-toggle { width:40px; justify-content:center; padding:0; }
+}
+@media (max-width:480px) {
+  .dd-shell { flex-direction:column; }
+  .dd-sidebar,.dd-sidebar.collapsed { width:100%; flex:none; border-right:0; }
+  .dd-sidebar-inner { height:56px; position:static; flex-direction:row; align-items:center;
+    gap:8px; padding:8px 24px; }
+  .dd-sidebar .dd-brand,.dd-sidebar .dd-label,.dd-sidebar #sb-toggle { display:none; }
+  .dd-sidebar nav { flex-direction:row; gap:8px; }
+  .dd-sidebar .dd-mod { width:40px; height:40px; flex:none; justify-content:center; padding:0; }
+  .dd-topbar { height:56px; padding-inline:24px; }
+  .dd-content { padding:24px; }
+  .dd-fold > .collapse-title { padding-inline:8px 32px; }
+  .dd-fold > .collapse-content { padding:0 8px 16px; }
+  .dd-topbar #theme-btn,.dd-topbar .logout-btn { min-width:40px; min-height:40px; padding-inline:8px; }
+  .dd-report-toolbar { align-items:flex-start; }
+  .dd-copy { width:100%; }
+}
+@media (prefers-reduced-motion:reduce) { button,a,summary,input,select,.btn { transition:none; } }
+</style>
+</head>
+<body class="min-h-screen bg-base-200">
+
+<!-- Copy from Supabase project settings > API. The anon key is public by design (protected by RLS). -->
+<!-- NEWSRUN_URL: the path below is for local use. DealDesk-site/deploy.js rewrites it to '../newsrun/'
+     in the deployed copy; no single relative path works from both places. -->
+<script>
+const NEWSRUN_URL = '../newsrun/';
+const SUPABASE_URL = 'https://ffgtikltyjsqscujllhz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZ3Rpa2x0eWpzcXNjdWpsbGh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMTI3MTEsImV4cCI6MjEwNDg4ODcxMX0.akPaiEJnIM5cJATQOOfCEHos6FgsEsF2i2p1JF5FqAg';
+</script>
+
+<!-- Metric catalog. Same content as the worker's Financials\metrics.json (ids are the contract).
+     label = name in Add Metrics, row = label printed in the Summary table. -->
+<script id="metrics" type="application/json">
+[
+{"id":"revenue","label":"Revenue","row":"Revenue","group":"P&L","kind":"amount","expr":"revenue","def":"매출액"},
+{"id":"revenue_growth","label":"Revenue growth","row":"% Growth","group":"P&L","kind":"pct","expr":"revenue / prev(revenue) - 1","def":""},
+{"id":"ebit","label":"EBIT","row":"EBIT","group":"P&L","kind":"amount","expr":"ebit","def":"영업이익"},
+{"id":"ebit_margin","label":"EBIT margin","row":"% Margin","group":"P&L","kind":"pct","expr":"ebit / revenue","def":""},
+{"id":"da","label":"D&A","row":"D&A","group":"P&L","kind":"amount","expr":"da","def":"감가상각비 + 무형자산상각비 (주석)"},
+{"id":"da_pct_revenue","label":"D&A / Revenue","row":"% Revenue","group":"P&L","kind":"pct","expr":"da / revenue","def":""},
+{"id":"ebitda","label":"EBITDA","row":"EBITDA","group":"P&L","kind":"amount","expr":"ebit + da","def":""},
+{"id":"ebitda_margin","label":"EBITDA margin","row":"% Margin","group":"P&L","kind":"pct","expr":"ebitda / revenue","def":""},
+{"id":"net_income","label":"Net income","row":"Net income","group":"P&L","kind":"amount","expr":"ni_ctrl","def":"지배기업 소유주 순이익"},
+{"id":"net_margin","label":"Net income margin","row":"% Margin","group":"P&L","kind":"pct","expr":"net_income / revenue","def":""},
+{"id":"interest_exp","label":"Interest expense","row":"Interest expense","group":"P&L","kind":"amount","expr":"interest_exp","def":"금융비용(이자비용)"},
+{"id":"cfo","label":"CFO","row":"CFO","group":"Cash flow","kind":"amount","expr":"cfo","def":"영업활동현금흐름"},
+{"id":"capex","label":"CapEx","row":"CapEx","group":"Cash flow","kind":"amount","expr":"ABS(capex_ppe) + ABS(capex_intan) + capex_rou","def":"유형자산 취득 + 무형자산 취득 (+사용권자산)"},
+{"id":"capex_pct_revenue","label":"CapEx / Revenue","row":"% Revenue","group":"Cash flow","kind":"pct","expr":"capex / revenue","def":""},
+{"id":"fcf","label":"FCF","row":"FCF","group":"Cash flow","kind":"amount","expr":"cfo - capex","def":"CFO − CapEx"},
+{"id":"total_debt","label":"Total debt","row":"Total debt","group":"Balance sheet","kind":"amount","expr":"debt","def":"사채 + 차입금 + 리스부채"},
+{"id":"cash_ce","label":"Cash & CE","row":"Cash & CE","group":"Balance sheet","kind":"amount","expr":"cash + st_fin","def":"현금및현금성자산 + 단기금융상품"},
+{"id":"net_debt","label":"Net debt","row":"Net debt","group":"Balance sheet","kind":"amount","expr":"total_debt - cash_ce","def":""},
+{"id":"total_assets","label":"Total assets","row":"Total assets","group":"Balance sheet","kind":"amount","expr":"assets","def":""},
+{"id":"total_liabilities","label":"Total liabilities","row":"Total liabilities","group":"Balance sheet","kind":"amount","expr":"liab","def":""},
+{"id":"nci","label":"Non-controlling interest","row":"Non-controlling interest","group":"Balance sheet","kind":"amount","expr":"nci","def":""},
+{"id":"book_value","label":"Book value","row":"Book value","group":"Balance sheet","kind":"amount","expr":"equity_ctrl","def":"지배기업 소유주지분(비지배지분 제외)"},
+{"id":"total_equity","label":"Total equity","row":"Total equity","group":"Balance sheet","kind":"amount","expr":"equity","def":"자본총계(비지배지분 포함)"},
+{"id":"net_debt_ebitda","label":"Net debt / EBITDA","row":"Net debt / EBITDA","group":"Leverage & coverage","kind":"multiple","expr":"net_debt / ebitda","def":""},
+{"id":"total_debt_ebitda","label":"Total debt / EBITDA","row":"Total debt / EBITDA","group":"Leverage & coverage","kind":"multiple","expr":"total_debt / ebitda","def":""},
+{"id":"interest_coverage","label":"Interest coverage","row":"Interest coverage","group":"Leverage & coverage","kind":"multiple","expr":"ebitda / interest_exp","def":"EBITDA ÷ 금융비용"},
+{"id":"debt_equity","label":"Total debt / Equity","row":"Total debt / Equity","group":"Leverage & coverage","kind":"multiple","expr":"total_debt / book_value","def":""},
+{"id":"roe","label":"ROE","row":"ROE","group":"Returns","kind":"pct","expr":"net_income / book_value","def":""},
+{"id":"roa","label":"ROA","row":"ROA","group":"Returns","kind":"pct","expr":"net_income / total_assets","def":""}
+]
+</script>
+
+<!-- Inline icons -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="i-news"><path d="M2.5 3.5h11v9h-11z"/><path d="M5 6h6M5 8.5h6M5 11h3.5"/></g>
+    <g id="i-chart"><path d="M2.5 13.5V8M6.2 13.5V3.5M9.8 13.5v-4M13.5 13.5v-7"/></g>
+    <g id="i-chev"><path d="M9.5 4.5L5.5 8l4 3.5"/></g>
+    <g id="i-theme"><path d="M13.5 9.6A5.5 5.5 0 016.4 2.5a5.6 5.6 0 107.1 7.1z"/></g>
+    <g id="i-out"><path d="M9.5 11.5L12.5 8 9.5 4.5M12.5 8H5M6.5 2.5h-4v11h4"/></g>
+  </defs>
+</svg>
+
+<!-- (a) Login -->
+<section id="scr-login" class="hidden dd-center">
+  <div class="dd-card w-full max-w-sm">
+    <div class="dd-card-body">
+      <h1 class="dd-page-title">Deal Desk</h1>
+      <p class="dd-muted">We'll send a magic link to your invited email.</p>
+      <input id="login-email" type="email" placeholder="name@example.com" class="input input-sm w-full" autocomplete="email">
+      <button id="login-btn" class="btn btn-sm btn-primary w-full">Send magic link</button>
+      <p id="login-msg" class="hidden text-success">Check your inbox. Click the link to sign in.</p>
+      <p id="login-err" class="hidden text-error"></p>
+    </div>
+  </div>
+</section>
+
+<!-- (b) Main -->
+<section id="scr-main" class="hidden">
+ <div class="dd-shell">
+
+  <aside id="sidebar" class="dd-sidebar">
+   <div class="dd-sidebar-inner">
+    <div class="dd-brand"><span class="dd-brand-text">Deal Desk</span><span class="dd-brand-mini">DD</span></div>
+    <nav class="flex flex-col gap-1" style="min-width:0">
+      <a id="nav-newsrun" class="dd-mod" title="Newsrun Tracker" aria-label="Newsrun Tracker">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-news"/></svg>
+        <span class="dd-label">Newsrun Tracker</span>
+      </a>
+      <span class="dd-mod dd-active" aria-current="page" title="Financials from DART">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chart"/></svg>
+        <span class="dd-label">Financials from DART</span>
+      </span>
+    </nav>
+    <button type="button" id="sb-toggle" class="dd-mod" title="Collapse sidebar" aria-label="Collapse sidebar">
+      <svg id="sb-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chev"/></svg>
+      <span class="dd-label">Collapse</span>
+    </button>
+   </div>
+  </aside>
+
+  <div class="dd-main">
+    <header class="dd-topbar">
+      <span id="module-title" class="dd-page-title flex-1 truncate">Financials from DART</span>
+      <span id="nav-email" class="dd-muted hidden sm:inline truncate" style="max-width:220px"></span>
+      <button id="theme-btn" class="btn btn-sm btn-ghost" title="Toggle theme" aria-label="Toggle theme">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-theme"/></svg>
+      </button>
+      <button class="btn btn-sm btn-ghost logout-btn" title="Log out">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-out"/></svg>
+        <span class="hidden sm:inline">Log out</span>
+      </button>
+    </header>
+
+    <main class="dd-content">
+      <div class="dd-cols">
+        <div class="dd-controls flex flex-col gap-4" style="min-width:0">
+          <button type="button" id="ctl-toggle" class="dd-ctl-toggle" title="Hide requests" aria-label="Hide requests" aria-controls="ctl-panel" aria-expanded="true">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chev"/></svg>
+            <span class="dd-label">Hide requests</span>
+          </button>
+          <div id="ctl-panel" class="flex flex-col gap-4" style="min-width:0">
+
+          <div class="dd-card dd-request">
+            <details class="collapse collapse-arrow dd-fold" open>
+              <summary class="collapse-title dd-title">New request</summary>
+              <div class="collapse-content dd-card-body">
+              <form id="req-form" class="flex flex-col gap-2">
+                <label for="f-company">Target company</label>
+                <input id="f-company" type="text" class="input input-sm w-full" placeholder="SK하이닉스" maxlength="100" required>
+                <label for="f-year-from">Fiscal years</label>
+                <div class="dd-field">
+                  <input id="f-year-from" type="number" class="input input-sm" min="1990" max="2100" step="1" aria-label="First fiscal year" required>
+                  <span class="dd-muted">to</span>
+                  <input id="f-year-to" type="number" class="input input-sm" min="1990" max="2100" step="1" aria-label="Last fiscal year" required>
+                </div>
+                <label for="f-ltm-kind">LTM column</label>
+                <div class="dd-field">
+                  <select id="f-ltm-kind" class="select select-sm">
+                    <option value="">None</option>
+                    <option value="1Q">1Q</option>
+                    <option value="1H">1H</option>
+                    <option value="3Q">3Q</option>
+                  </select>
+                  <input id="f-ltm-year" type="number" class="input input-sm hidden" min="1990" max="2100" step="1" aria-label="LTM year">
+                </div>
+                <label for="f-template">Summary template</label>
+                <select id="f-template" class="select select-sm"><option value="default">Default (19 metrics)</option></select>
+                <div id="req-alert" class="hidden alert alert-error p-2"></div>
+                <button class="btn btn-sm btn-primary">Send request</button>
+              </form>
+              </div>
+            </details>
+          </div>
+
+          <div class="dd-card dd-editor">
+            <details id="ed-fold" class="collapse collapse-arrow dd-fold">
+              <summary class="collapse-title dd-title">Add Metrics</summary>
+              <div class="collapse-content dd-card-body">
+                <input id="mx-search" type="search" class="input input-sm w-full" placeholder="Search metrics" aria-label="Search metrics" autocomplete="off">
+                <div id="mx-list"></div>
+                <div>
+                  <div class="dd-mgroup">Others</div>
+                  <div class="dd-mrow dd-custom">
+                    <input id="mx-custom" type="text" maxlength="120" class="input input-sm" aria-label="Describe a metric"
+                           placeholder="Describe a metric, e.g. Net debt / (EBITDA − CapEx)">
+                    <button type="button" id="mx-custom-add" class="btn btn-sm">Add</button>
+                  </div>
+                </div>
+                <div class="dd-field">
+                  <button type="button" id="tpl-toggle" class="btn btn-sm">Save as template</button>
+                  <button type="button" id="ed-reset" class="btn btn-sm btn-ghost">Reset to default</button>
+                </div>
+                <div id="tpl-save" class="hidden flex flex-col gap-2">
+                  <label for="ed-name">Template name</label>
+                  <div class="dd-field">
+                    <input id="ed-name" type="text" maxlength="40" class="input input-sm" placeholder="My summary">
+                    <button type="button" id="ed-save" class="btn btn-sm btn-primary">Save</button>
+                  </div>
+                </div>
+                <div id="ed-msg" class="hidden alert alert-error p-2"></div>
+              </div>
+            </details>
+          </div>
+
+          <div class="dd-card dd-register">
+            <details class="collapse collapse-arrow dd-fold">
+              <summary class="collapse-title dd-title">My requests</summary>
+              <div class="collapse-content dd-card-body">
+                <div id="req-list" class="flex flex-col"></div>
+              </div>
+            </details>
+          </div>
+
+          </div>
+        </div>
+
+        <div class="dd-results flex flex-col gap-4" style="min-width:0">
+          <div class="dd-card dd-report">
+            <div class="dd-card-body">
+              <div class="dd-report-toolbar flex items-center justify-between gap-2 flex-wrap">
+                <h2 id="res-title" class="dd-title">Summary</h2>
+                <div class="dd-report-actions flex items-center gap-3">
+                  <button id="dl-btn" class="btn btn-sm dd-copy hidden">Download Excel (with back data)</button>
+                </div>
+              </div>
+              <div id="res-meta" class="dd-muted"></div>
+              <div id="res-hint" class="dd-muted">Arrange the rows below, then send the request. Open a finished request to see its numbers.</div>
+              <div id="res-status" class="hidden dd-muted"></div>
+              <div id="res-error" class="hidden text-error"></div>
+              <div class="dd-sheet">
+                <table class="dd-sum">
+                  <thead><tr id="res-head">
+                    <th scope="col" class="dd-unit-cell">
+                      <select id="unit-select" class="select select-xs" aria-label="Unit">
+                        <option value="KRW mm">KRW mm</option>
+                        <option value="KRW bn">KRW bn</option>
+                        <option value="KRW">KRW</option>
+                      </select>
+                    </th>
+                  </tr></thead>
+                  <tbody id="res-body"></tbody>
+                </table>
+              </div>
+              <div id="res-flags"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+ </div>
+</section>
+
+<div id="toast" class="hidden toast toast-end"><div class="alert alert-success"><span id="toast-msg"></span></div></div>
+<script>
+const $ = id => document.getElementById(id);
+const demo = new URLSearchParams(location.search).get('demo') === '1';
+const sb = demo ? null : supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+$('nav-newsrun').href = NEWSRUN_URL;
+
+/* Theme (shared with the Newsrun Tracker page) */
+const root = document.documentElement;
+try { root.dataset.theme = /dark/.test(localStorage.nrTheme || '') ? 'deal-dark' : 'deal'; } catch {}
+function paintThemeState() {
+  $('theme-btn').setAttribute('aria-label', 'Dark theme');
+  $('theme-btn').setAttribute('aria-pressed', String(root.dataset.theme === 'deal-dark'));
+}
+paintThemeState();
+$('theme-btn').onclick = () => {
+  const t = root.dataset.theme === 'deal-dark' ? 'deal' : 'deal-dark';
+  root.dataset.theme = t;
+  paintThemeState();
+  try { localStorage.nrTheme = t; } catch {}
+};
+
+/* Sidebar collapse */
+const sidebar = $('sidebar');
+const paintSidebar = () => {
+  const c = sidebar.classList.contains('collapsed');
+  $('sb-icon').style.transform = c ? 'rotate(180deg)' : '';
+  $('sb-toggle').title = c ? 'Expand sidebar' : 'Collapse sidebar';
+  $('sb-toggle').setAttribute('aria-expanded', String(!c));
+  $('sb-toggle').setAttribute('aria-controls', 'sidebar');
+  $('sb-toggle').setAttribute('aria-label', c ? 'Expand sidebar' : 'Collapse sidebar');
+};
+try { sidebar.classList.toggle('collapsed', localStorage.nrSidebar === '1'); } catch {}
+paintSidebar();
+$('sb-toggle').onclick = () => {
+  const c = sidebar.classList.toggle('collapsed');
+  try { localStorage.nrSidebar = c ? '1' : '0'; } catch {}
+  paintSidebar();
+};
+
+/* Request column collapse */
+const ctl = document.querySelector('.dd-controls');
+const paintCtl = () => {
+  const c = ctl.classList.contains('collapsed');
+  const t = c ? 'Show requests' : 'Hide requests';
+  $('ctl-toggle').title = t;
+  $('ctl-toggle').setAttribute('aria-label', t);
+  $('ctl-toggle').setAttribute('aria-expanded', String(!c));
+  $('ctl-toggle').querySelector('.dd-label').textContent = t;
+};
+try { ctl.classList.toggle('collapsed', localStorage.finControls === '1'); } catch {}
+paintCtl();
+$('ctl-toggle').onclick = () => {
+  const c = ctl.classList.toggle('collapsed');
+  try { localStorage.finControls = c ? '1' : '0'; } catch {}
+  paintCtl();
+};
+
+$('login-email').setAttribute('aria-label', 'Email address');
+document.querySelector('.logout-btn').setAttribute('aria-label', 'Log out');
+$('toast-msg').setAttribute('role', 'status');
+$('toast-msg').setAttribute('aria-atomic', 'true');
+$('res-status').setAttribute('role', 'status');
+
+const show = id => ['scr-login', 'scr-main'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+let toastTimer;
+function toast(msg) {
+  $('toast-msg').textContent = msg;
+  $('toast').classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $('toast').classList.add('hidden'), 1800);
+}
+
+/* ---------- Metric catalog ---------- */
+/* Ids are the contract with the worker; the page never asks the user for a formula. */
+const METRICS = JSON.parse($('metrics').textContent);
+const BY_ID = new Map(METRICS.map(m => [m.id, m]));
+const GROUPS = [...new Set(METRICS.map(m => m.group))];
+const DEFAULT_METRICS = ['revenue', 'revenue_growth', 'ebit', 'ebit_margin', 'da', 'da_pct_revenue',
+  'ebitda', 'ebitda_margin', 'net_income', 'net_margin', 'total_debt', 'cash_ce', 'net_debt',
+  'total_assets', 'total_liabilities', 'nci', 'book_value', 'capex', 'capex_pct_revenue'];
+/* A companion ratio is indented only where it sits right under the metric it divides. */
+const PARENT = {
+  revenue_growth: 'revenue', ebit_margin: 'ebit', da_pct_revenue: 'da',
+  ebitda_margin: 'ebitda', net_margin: 'net_income', capex_pct_revenue: 'capex'
+};
+const UNITS = { 'KRW mm': 1, 'KRW bn': 0.001, 'KRW': 1e6 };   // preview values arrive in KRW mm
+const MAX_METRICS = 60;
+
+/* A selection entry is a catalog id, or {id,label,row,kind:'custom',prompt} the worker resolves. */
+let selected = DEFAULT_METRICS.slice();
+let unit = 'KRW mm';
+let templates = [];
+const idOf = e => typeof e === 'string' ? e : e.id;
+const resolve = e => typeof e === 'string' ? BY_ID.get(e) : e;
+const serialize = e => typeof e === 'string' ? e : { id: e.id, label: e.label, prompt: e.prompt };
+const deserialize = e => typeof e === 'string' ? (BY_ID.has(e) ? e : null)
+  : (e && e.id ? { id: e.id, label: e.label || e.id, row: e.label || e.id, kind: 'custom', prompt: e.prompt || e.label || '' } : null);
+
+/* ---------- Add Metrics (catalog only: removal and order live in the table) ---------- */
+function edMsg(msg) {
+  $('ed-msg').textContent = msg || '';
+  $('ed-msg').classList.toggle('hidden', !msg);
+}
+
+function catalogRow(m) {
+  const picked = selected.some(e => idOf(e) === m.id);
+  const row = document.createElement('div');
+  row.className = 'dd-mrow';
+  row.dataset.id = m.id;
+  const label = document.createElement('label');
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.className = 'checkbox checkbox-sm';
+  cb.checked = picked;
+  cb.disabled = picked;
+  cb.onchange = () => addMetric(m.id);
+  const name = document.createElement('span');
+  name.className = 'dd-mname';
+  name.textContent = m.label;
+  label.append(cb, name);
+  const acts = document.createElement('div');
+  acts.className = 'dd-mact';
+  const info = document.createElement('button');
+  info.type = 'button';
+  info.className = 'btn tooltip tooltip-left';
+  info.dataset.tip = m.def || m.expr;
+  info.textContent = 'i';
+  info.setAttribute('aria-label', m.label + ': ' + (m.def || m.expr));
+  acts.append(info);
+  row.append(label, acts);
+  return row;
+}
+
+function renderCatalog() {
+  const host = $('mx-list');
+  host.textContent = '';
+  const q = $('mx-search').value.trim().toLowerCase();
+  const hit = m => !q || (m.label + ' ' + m.group + ' ' + m.def).toLowerCase().includes(q);
+  let shown = 0;
+  GROUPS.forEach(g => {
+    const list = METRICS.filter(m => m.group === g && hit(m));
+    if (!list.length) return;
+    const head = document.createElement('div');
+    head.className = 'dd-mgroup';
+    head.textContent = g;
+    host.append(head);
+    list.forEach(m => { shown++; host.append(catalogRow(m)); });
+  });
+  if (!shown) {
+    const empty = document.createElement('div');
+    empty.id = 'mx-empty';
+    empty.className = 'dd-muted';
+    empty.textContent = 'No metric matches that search.';
+    host.append(empty);
+  }
+}
+$('mx-search').oninput = renderCatalog;
+
+function addMetric(id) {
+  if (selected.some(e => idOf(e) === id)) return;
+  if (selected.length >= MAX_METRICS) return edMsg('At most ' + MAX_METRICS + ' metrics.');
+  selected.push(id);
+  edMsg(null);
+  renderCatalog();
+  renderSheet();
+}
+
+function nextCustomId() {
+  const used = selected.map(idOf).filter(x => /^custom_\d+$/.test(x)).map(x => +x.slice(7));
+  return 'custom_' + ((used.length ? Math.max(...used) : 0) + 1);
+}
+$('mx-custom-add').onclick = () => {
+  const text = $('mx-custom').value.trim();
+  if (!text) return;
+  if (selected.length >= MAX_METRICS) return edMsg('At most ' + MAX_METRICS + ' metrics.');
+  selected.push({ id: nextCustomId(), label: text, row: text, kind: 'custom', prompt: text });
+  $('mx-custom').value = '';
+  edMsg(null);
+  renderSheet();
+  toast('Added. The worker fills it in.');
+};
+$('mx-custom').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('mx-custom-add').click(); } };
+
+$('tpl-toggle').onclick = () => {
+  $('tpl-save').classList.remove('hidden');
+  $('ed-name').focus();
+};
+$('ed-reset').onclick = () => {
+  selected = DEFAULT_METRICS.slice();
+  unit = 'KRW mm';
+  $('f-template').value = 'default';
+  $('ed-name').value = '';
+  edMsg(null);
+  paintUnit();
+  renderCatalog();
+  renderSheet();
+};
+$('ed-save').onclick = async () => {
+  const name = $('ed-name').value.trim();
+  const bad = validateSelection() || (name ? null : 'Name the template before saving.');
+  edMsg(bad);
+  if (bad) return;
+  if (demo) return toast('Template saved');
+  const { data, error } = await sb.from('fin_summary_templates')
+    .upsert({ email: me, name, rows: { unit, metrics: selected.map(serialize) } }, { onConflict: 'email,name' })
+    .select().single();
+  if (error) return edMsg(error.message);
+  $('tpl-save').classList.add('hidden');
+  await loadTemplates(data.id);
+  toast('Template saved');
+};
+
+function validateSelection() {
+  if (!selected.length) return 'Add at least one metric.';
+  if (selected.length > MAX_METRICS) return 'At most ' + MAX_METRICS + ' metrics per request.';
+  return null;
+}
+
+function renderTemplates(selectedId) {
+  const sel = $('f-template');
+  sel.textContent = '';
+  sel.append(new Option('Default (19 metrics)', 'default'));
+  templates.forEach(t => sel.append(new Option(t.name, t.id)));
+  sel.value = [...sel.options].some(o => o.value === selectedId) ? selectedId : 'default';
+  loadFromSelection();
+}
+
+function loadFromSelection() {
+  const t = templates.find(x => x.id === $('f-template').value);
+  const rows = t?.rows;
+  selected = Array.isArray(rows?.metrics) ? rows.metrics.map(deserialize).filter(Boolean) : DEFAULT_METRICS.slice();
+  unit = UNITS[rows?.unit] ? rows.unit : 'KRW mm';
+  $('ed-name').value = t ? t.name : '';
+  edMsg(null);
+  paintUnit();
+  renderCatalog();
+  renderSheet();
+}
+$('f-template').onchange = loadFromSelection;
+
+/* ---------- Request form ---------- */
+const thisYear = new Date().getFullYear();
+$('f-year-to').value = thisYear - 1;          // last full year
+$('f-year-from').value = thisYear - 5;        // five fiscal years by default
+$('f-ltm-year').value = thisYear;
+$('f-ltm-kind').onchange = () => {
+  const on = !!$('f-ltm-kind').value;
+  $('f-ltm-year').classList.toggle('hidden', !on);
+  if (on) $('f-ltm-year').focus();
+  renderSheet();
+};
+['f-year-from', 'f-year-to', 'f-ltm-year'].forEach(id => $(id).oninput = () => renderSheet());
+
+const periodLabel = r => (r.year_from === r.year_to ? r.year_from + 'A'
+  : r.year_from + 'A–' + r.year_to + 'A') + (r.ltm ? ' · LTM ' + r.ltm : '');
+
+const reqPeriods = r => {
+  const out = [];
+  for (let y = r.year_from; y <= r.year_to; y++) out.push(y + 'A');
+  if (r.ltm) out.push('LTM ' + r.ltm);
+  return out;
+};
+
+function formPeriods() {
+  const from = +$('f-year-from').value, to = +$('f-year-to').value, out = [];
+  if (from >= 1990 && to <= 2100 && to >= from && to - from <= 9) {
+    for (let y = from; y <= to; y++) out.push(y + 'A');
+  }
+  const kind = $('f-ltm-kind').value, y = +$('f-ltm-year').value;
+  if (kind && y >= 1990 && y <= 2100) out.push('LTM ' + kind + String(y).slice(-2));
+  return out;
+}
+
+function requestPayload() {
+  const company = $('f-company').value.trim();
+  if (!company || company.includes(',')) return { err: 'Enter exactly one company name.' };
+  if (company.length > 100) return { err: 'That company name is too long.' };
+  const from = +$('f-year-from').value, to = +$('f-year-to').value;
+  if (!from || !to) return { err: 'Enter both fiscal years.' };
+  if (from < 1990 || to > 2100) return { err: 'Fiscal years must be between 1990 and 2100.' };
+  if (to < from) return { err: 'The last year must be on or after the first year.' };
+  if (to - from > 9) return { err: 'At most 10 fiscal years per request.' };
+  let ltm = null;
+  const kind = $('f-ltm-kind').value;
+  if (kind) {
+    const y = +$('f-ltm-year').value;
+    if (!(y >= 1990 && y <= 2100)) return { err: 'Enter the LTM year.' };
+    ltm = kind + String(y).slice(-2);
+  }
+  const bad = validateSelection();
+  if (bad) return { err: bad };
+  return { row: { email: me, company, year_from: from, year_to: to, ltm,
+    summary: { unit, metrics: selected.map(serialize) } } };
+}
+
+$('req-form').onsubmit = async e => {
+  e.preventDefault();
+  const alertBox = $('req-alert'), button = $('req-form').querySelector('button:not([type="button"])');
+  alertBox.classList.add('hidden');
+  const { err, row } = requestPayload();
+  if (err) { alertBox.textContent = err; alertBox.classList.remove('hidden'); return; }
+  if (demo) { toast('Request submitted'); $('f-company').value = ''; return; }
+  button.disabled = true;
+  try {
+    const { error } = await sb.from('fin_requests').insert(row);
+    if (error) throw error;
+    toast('Request submitted');
+    $('f-company').value = '';
+    loadRequests();
+  } catch (error) {
+    alertBox.textContent = /row-level security/i.test(error.message || '')
+      ? 'This account is not allowed.' : (error.message || 'Request failed. Please try again.');
+    alertBox.classList.remove('hidden');
+  } finally {
+    button.disabled = false;
+  }
+};
+
+/* ---------- Requests register ---------- */
+const BADGE = { pending: 'dd-b-wait', running: 'dd-b-wait', done: 'dd-b-done', error: 'dd-b-err' };
+let reqs = [], openId = null, me = null, channel = null;
+
+async function loadRequests() {
+  const { data, error } = await sb.from('fin_requests').select('*').order('created_at', { ascending: false });
+  if (error) return toast('Could not refresh requests');
+  reqs = data || [];
+  renderRequests();
+  renderResult();
+}
+
+async function loadTemplates(selectedId) {
+  const { data, error } = await sb.from('fin_summary_templates').select('*').order('name');
+  if (error) return;
+  templates = data || [];
+  renderTemplates(selectedId || $('f-template').value);
+}
+
+/* Opening a request loads the metric list it ran with, so the table shows what produced it. */
+function openRequest(r) {
+  openId = r.id;
+  const m = r.summary?.metrics;
+  if (Array.isArray(m) && m.length) selected = m.map(deserialize).filter(Boolean);
+  if (UNITS[r.summary?.unit]) unit = r.summary.unit;
+  paintUnit();
+  renderCatalog();
+  renderRequests();
+  renderResult();
+}
+
+function renderRequests() {
+  const host = $('req-list');
+  const refocus = host.contains(document.activeElement) ? document.activeElement.dataset.id : null;
+  host.textContent = '';
+  if (!reqs.length) {
+    const empty = document.createElement('div');
+    empty.className = 'dd-muted';
+    empty.textContent = 'No requests yet.';
+    host.append(empty);
+    return;
+  }
+  reqs.forEach(r => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.id = r.id;
+    b.setAttribute('aria-current', String(r.id === openId));
+    const top = document.createElement('div');
+    top.className = 'flex items-center justify-between gap-2';
+    const name = document.createElement('span');
+    name.className = 'font-medium truncate';
+    name.textContent = r.company;
+    const badge = document.createElement('span');
+    badge.className = 'badge badge-sm ' + (BADGE[r.status] || 'dd-b-mute');
+    badge.textContent = r.status;
+    top.append(name, badge);
+    const sub = document.createElement('div');
+    sub.className = 'dd-muted dd-meta';
+    sub.textContent = periodLabel(r);
+    b.append(top, sub);
+    b.onclick = () => openRequest(r);
+    host.append(b);
+  });
+  if (refocus) host.querySelector('[data-id="' + refocus + '"]')?.focus({ preventScroll: true });
+}
+
+/* ---------- The summary sheet (also the composer) ---------- */
+const nf = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+const fmtCell = (v, kind) => typeof v !== 'number' || !Number.isFinite(v) ? '–'
+  : kind === 'pct' ? (v * 100).toFixed(1) + '%'
+  : kind === 'multiple' ? v.toFixed(1) + 'x'
+  : nf.format(Math.round(v * UNITS[unit]));
+
+const STATUS_NOTE = {
+  pending: 'Queued. The worker picks it up on its next pass.',
+  running: 'Running. The summary appears here when the worker finishes.'
+};
+const openReq = () => reqs.find(x => x.id === openId);
+
+function paintUnit() { $('unit-select').value = unit; }
+$('unit-select').onchange = () => { unit = $('unit-select').value; renderSheet(); };
+
+function renderResult() {
+  const r = openReq();
+  const toggle = (id, on) => $(id).classList.toggle('hidden', !on);
+  $('res-title').textContent = r ? r.company : 'Summary';
+  $('res-meta').textContent = r ? periodLabel(r) + ' · ' + r.status : '';
+  toggle('res-hint', !r);
+  const note = r ? STATUS_NOTE[r.status] : '';
+  $('res-status').textContent = note || '';
+  toggle('res-status', !!note);
+  $('res-error').textContent = r && r.status === 'error' ? (r.error || 'The run failed.') : '';
+  toggle('res-error', !!r && r.status === 'error');
+  toggle('dl-btn', !!r?.xlsx_path);
+  renderSheet();
+  renderFlags(r?.flags);
+}
+
+let dragFrom = null;
+function moveRow(from, to) {
+  if (to < 0 || to >= selected.length || from === to) return;
+  const [x] = selected.splice(from, 1);
+  selected.splice(to, 0, x);
+  renderSheet();
+  $('res-body').children[to]?.querySelector('.dd-grip')?.focus({ preventScroll: true });
+}
+function removeRow(i) {
+  selected.splice(i, 1);
+  renderCatalog();
+  renderSheet();
+}
+
+function renderSheet() {
+  const head = $('res-head'), body = $('res-body');
+  [...head.children].slice(1).forEach(el => el.remove());
+  body.textContent = '';
+  const r = openReq();
+  const periods = r?.preview?.periods || (r ? reqPeriods(r) : formPeriods());
+  const values = new Map((r?.preview?.rows || []).map(row => [row.id, row.values]));
+  periods.forEach(p => {
+    const th = document.createElement('th');
+    th.scope = 'col';
+    th.textContent = p;
+    head.append(th);
+  });
+  const ctrlHead = document.createElement('th');
+  ctrlHead.scope = 'col';
+  ctrlHead.className = 'dd-ctrl-col';
+  const sr = document.createElement('span');
+  sr.className = 'sr-only';
+  sr.textContent = 'Reorder or remove';
+  ctrlHead.append(sr);
+  head.append(ctrlHead);
+
+  if (!selected.length) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = periods.length + 2;
+    td.className = 'dd-muted';
+    td.style.textAlign = 'left';
+    td.textContent = 'No metrics yet. Add some from Add Metrics.';
+    tr.append(td);
+    body.append(tr);
+    return;
+  }
+
+  selected.forEach((entry, i) => {
+    const m = resolve(entry) || { id: idOf(entry), row: idOf(entry), label: idOf(entry), kind: 'amount' };
+    const kind = m.kind || 'amount';
+    const tr = document.createElement('tr');
+    tr.dataset.id = m.id;
+    tr.draggable = true;
+    if (kind === 'pct' || kind === 'multiple') tr.classList.add('dd-ratio');
+    if (PARENT[m.id] && PARENT[m.id] === idOf(selected[i - 1] ?? '')) tr.classList.add('dd-sub');
+    tr.ondragstart = e => {
+      dragFrom = i;
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', String(i)); } catch {}
+    };
+    tr.ondragover = e => { e.preventDefault(); tr.classList.add('dd-drag-over'); };
+    tr.ondragleave = () => tr.classList.remove('dd-drag-over');
+    tr.ondrop = e => {
+      e.preventDefault();
+      tr.classList.remove('dd-drag-over');
+      if (dragFrom !== null) moveRow(dragFrom, i);
+      dragFrom = null;
+    };
+    tr.ondragend = () => {
+      dragFrom = null;
+      body.querySelectorAll('.dd-drag-over').forEach(x => x.classList.remove('dd-drag-over'));
+    };
+
+    const label = document.createElement('th');
+    label.scope = 'row';
+    label.textContent = m.row || m.label || m.id;
+    if (m.kind === 'custom') label.title = 'Custom metric: ' + (m.prompt || '');
+    tr.append(label);
+    const vals = values.get(m.id);
+    periods.forEach((_, j) => {
+      const td = document.createElement('td');
+      td.textContent = fmtCell(vals?.[j], kind);
+      tr.append(td);
+    });
+
+    const ctrlCell = document.createElement('td');
+    ctrlCell.className = 'dd-ctrl-col';
+    const ctrls = document.createElement('div');
+    ctrls.className = 'dd-ctrl';
+    const grip = document.createElement('button');
+    grip.type = 'button';
+    grip.className = 'btn dd-grip';
+    grip.textContent = '⠿';
+    grip.title = 'Drag to reorder, or use the arrow keys';
+    grip.setAttribute('aria-label', 'Reorder ' + (m.label || m.id) + ': use the arrow keys');
+    grip.onkeydown = e => {
+      if (e.key === 'ArrowUp') { e.preventDefault(); moveRow(i, i - 1); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); moveRow(i, i + 1); }
+    };
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'btn';
+    del.dataset.act = 'del';
+    del.textContent = '✕';
+    del.title = 'Remove row';
+    del.setAttribute('aria-label', 'Remove ' + (m.label || m.id));
+    del.onclick = () => removeRow(i);
+    ctrls.append(grip, del);
+    ctrlCell.append(ctrls);
+    tr.append(ctrlCell);
+    body.append(tr);
+  });
+}
+
+function renderFlags(flags) {
+  const host = $('res-flags');
+  host.textContent = '';
+  (Array.isArray(flags) ? flags : []).forEach(f => {
+    const row = document.createElement('div');
+    row.className = 'dd-flag';
+    const level = ['ofs', 'check', 'missing'].includes(f.level) ? f.level : 'check';
+    const lvl = document.createElement('span');
+    lvl.className = 'dd-lvl dd-lvl-' + level;
+    lvl.textContent = level;
+    const msg = document.createElement('span');
+    msg.textContent = f.row_key ? f.row_key + ' · ' + (f.msg || '') : (f.msg || '');
+    row.append(lvl, msg);
+    host.append(row);
+  });
+}
+
+$('dl-btn').onclick = async () => {
+  const r = openReq();
+  if (!r?.xlsx_path) return;
+  if (demo) return toast('Demo mode: no file to download');
+  const { data, error } = await sb.storage.from('financials').createSignedUrl(r.xlsx_path, 600);
+  if (error || !data?.signedUrl) return toast('Could not create the download link');
+  window.open(data.signedUrl, '_blank', 'noopener');
+};
+
+paintUnit();
+renderCatalog();
+renderResult();
+
+/* ---------- Auth: allowlist = Supabase "Invite user" (signups OFF) ---------- */
+if (!demo) {
+  $('login-btn').onclick = async () => {
+    const email = $('login-email').value.trim();
+    if (!email) return;
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: location.origin + location.pathname, shouldCreateUser: false }
+    });
+    // Same answer either way: whether an address is invited must not leak from this screen.
+    if (error) console.warn('signInWithOtp:', error.message);
+    $('login-msg').classList.remove('hidden');
+    $('login-err').classList.add('hidden');
+  };
+  document.querySelectorAll('.logout-btn').forEach(b => b.onclick = async () => { await sb.auth.signOut(); location.reload(); });
+
+  const boot = session => {
+    if (!session) return show('scr-login');
+    me = session.user.email;
+    $('nav-email').textContent = me;
+    show('scr-main');
+    loadRequests();
+    loadTemplates();
+    if (!channel) channel = sb.channel('fin-reqs')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'fin_requests', filter: 'email=eq.' + me }, loadRequests)
+      .subscribe(status => {
+        // No live updates: the list still refreshes on every send and on reload.
+        if (status !== 'SUBSCRIBED') console.warn('realtime channel:', status);
+      });
+  };
+  sb.auth.getSession().then(({ data }) => boot(data.session));
+  sb.auth.onAuthStateChange((_e, s) => boot(s));
+}
+
+/* demo=1: obviously fake numbers, for visual QA only. Never shown to a signed-in user. */
+if (demo) {
+  me = 'demo@financials';
+  $('nav-email').textContent = me;
+  show('scr-main');
+  const demoMetrics = DEFAULT_METRICS.concat(['net_debt_ebitda', 'interest_coverage', 'roe'],
+    [{ id: 'custom_1', label: 'Net debt / (EBITDA − CapEx)', row: 'Net debt / (EBITDA − CapEx)', kind: 'custom', prompt: 'Net debt / (EBITDA − CapEx)' }]);
+  const fakeValues = (m, i) => [1, 2, 3, 4, 5, 6].map(p => m.kind === 'pct' ? 0.111 * p
+    : m.kind === 'multiple' ? 1.1 * p : 111111 * (i + 1) * p);
+  reqs = [
+    { id: 'd1', company: '삼성전자', year_from: 2021, year_to: 2025, ltm: '1H26', status: 'done',
+      xlsx_path: 'd1/samsung_2021-1H26.xlsx',
+      summary: { unit: 'KRW mm', metrics: demoMetrics.map(serialize) },
+      preview: {
+        periods: ['2021A', '2022A', '2023A', '2024A', '2025A', 'LTM 1H26'],
+        rows: demoMetrics.filter(e => typeof e === 'string').map((id, i) => {
+          const m = BY_ID.get(id);
+          const values = fakeValues(m, i);
+          if (id === 'da') values[2] = null;
+          return { id: m.id, label: m.row, kind: m.kind, fmt: m.kind === 'pct' ? '0.0%' : m.kind === 'multiple' ? '0.0x' : '#,##0', values };
+        })
+      },
+      flags: [
+        { level: 'missing', row_key: 'da', msg: 'FAKE DEMO FLAG — no D&A table in the 1H26 interim notes.' },
+        { level: 'check', row_key: 'total_debt', msg: 'FAKE DEMO FLAG — cross-check the current portion of long-term debt.' },
+        { level: 'ofs', msg: 'FAKE DEMO FLAG — separate financial statements used for one period.' }
+      ] },
+    { id: 'd2', company: 'SK하이닉스', year_from: 2022, year_to: 2025, ltm: null, status: 'running',
+      summary: { unit: 'KRW bn', metrics: DEFAULT_METRICS } },
+    { id: 'd3', company: '현대차', year_from: 2021, year_to: 2025, ltm: '1Q26', status: 'error',
+      summary: { unit: 'KRW mm', metrics: DEFAULT_METRICS },
+      error: 'FAKE DEMO ERROR — DART report 20260514000123 has no consolidated notes.' }
+  ];
+  templates = [{ id: 't1', name: 'Demo template', rows: { unit: 'KRW bn', metrics: DEFAULT_METRICS.slice(0, 10) } }];
+  renderTemplates('default');
+  renderRequests();
+  openRequest(reqs[0]);
+}
+</script>
+</body>
+</html>
