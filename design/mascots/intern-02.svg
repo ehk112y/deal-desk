@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" role="img" aria-label="Intern 02 - Financials (DART)">
+  <rect x="30" y="74" width="13" height="14" rx="4.5" fill="#256F27"/>
+  <rect x="57" y="74" width="13" height="14" rx="4.5" fill="#256F27"/>
+  <g transform="rotate(8 89 56)">
+    <rect x="84" y="40" width="10" height="22" rx="2" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
+    <path d="M84 62 L89 71 L94 62 Z" fill="#256F27"/>
+    <rect x="84" y="49" width="10" height="3" fill="#256F27"/>
+  </g>
+  <rect x="20" y="32" width="60" height="46" rx="12" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
+  <path d="M24 60 H76" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M50 63 V75" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <circle cx="39" cy="47" r="5" fill="#256F27"/>
+  <circle cx="61" cy="47" r="5" fill="#256F27"/>
+  <rect x="14" y="44" width="10" height="24" rx="5" fill="#256F27"/>
+  <rect x="76" y="44" width="10" height="24" rx="5" fill="#256F27"/>
+</svg>

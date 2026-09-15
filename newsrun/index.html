@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Newsrun Tracker</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%20width%3D%2232%22%20height%3D%2232%22%20role%3D%22img%22%20aria-label%3D%22Intern%2001%22%3E%20%3Cpath%20d%3D%22M16%2010%20V6%22%20stroke%3D%22%2398341B%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20fill%3D%22none%22%2F%3E%20%3Crect%20x%3D%2212.25%22%20y%3D%221.25%22%20width%3D%227.5%22%20height%3D%229.5%22%20rx%3D%223.75%22%20fill%3D%22none%22%20stroke%3D%22%2398341B%22%20stroke-width%3D%222.5%22%2F%3E%20%3Crect%20x%3D%2214.75%22%20y%3D%224%22%20width%3D%222.5%22%20height%3D%224%22%20rx%3D%221.25%22%20fill%3D%22%2398341B%22%2F%3E%20%3Crect%20x%3D%223.25%22%20y%3D%229.25%22%20width%3D%2225.5%22%20height%3D%2224%22%20rx%3D%226%22%20fill%3D%22%23E8927C%22%20stroke%3D%22%2398341B%22%20stroke-width%3D%222.5%22%2F%3E%20%3Crect%20x%3D%228%22%20y%3D%2212.5%22%20width%3D%2216%22%20height%3D%223%22%20rx%3D%221%22%20fill%3D%22%2398341B%22%2F%3E%20%3Ccircle%20cx%3D%2211.5%22%20cy%3D%2223%22%20r%3D%223.2%22%20fill%3D%22%2398341B%22%2F%3E%20%3Ccircle%20cx%3D%2220.5%22%20cy%3D%2223%22%20r%3D%223.2%22%20fill%3D%22%2398341B%22%2F%3E%20%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/daisyui@5.7.37" rel="stylesheet" type="text/css">
@@ -104,6 +105,7 @@ input[type="date"].input { min-width:0; flex:1 1 0; font-variant-numeric:tabular
 .dd-sidebar :is(button,a):focus-visible { outline-color:#E3DC95; }
 #sb-toggle { margin-top:auto; border-top:1px solid #51513D; border-radius:0; height:40px; }
 .dd-main { flex:1 1 auto; min-width:0; display:flex; flex-direction:column; container-type:inline-size; }
+.dd-mascot { flex:none; }
 .dd-topbar { position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:8px;
   height:56px; padding:0 24px; background:var(--color-base-100); border-bottom:1px solid var(--dd-border); }
 #theme-btn { border-left:1px solid var(--dd-border); border-radius:0; margin-left:8px; }
@@ -319,6 +321,22 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
   <div class="dd-main">
     <header class="dd-topbar">
+      <svg class="dd-mascot" width="32" height="32" viewBox="0 0 100 100" aria-hidden="true">
+        <rect x="30" y="72" width="11" height="17" rx="5.5" fill="#98341B"/>
+        <rect x="58" y="74" width="11" height="14" rx="5.5" fill="#98341B"/>
+        <rect x="16" y="46" width="10" height="23" rx="5" fill="#98341B" transform="rotate(12 21 48)"/>
+        <rect x="74" y="46" width="10" height="23" rx="5" fill="#98341B" transform="rotate(-12 79 48)"/>
+        <path d="M50 30 V21" stroke="#98341B" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <rect x="43.5" y="4.5" width="13" height="18" rx="6.5" fill="none" stroke="#98341B" stroke-width="3"/>
+        <rect x="48" y="9" width="4" height="9" rx="2" fill="#98341B"/>
+        <rect x="23" y="26" width="54" height="52" rx="12" fill="#E8927C" stroke="#98341B" stroke-width="3"/>
+        <rect x="30" y="33" width="40" height="5" rx="1" fill="#98341B"/>
+        <rect x="30" y="41" width="24" height="3" rx="1.5" fill="#EBC9C0"/>
+        <circle cx="40" cy="55" r="5" fill="#98341B"/>
+        <circle cx="60" cy="55" r="5" fill="#98341B"/>
+        <path d="M27 64 H73" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <path d="M36 70 V74 M50 70 V74 M64 70 V74" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+      </svg>
       <span id="module-title" class="dd-page-title flex-1 truncate">Newsrun Tracker</span>
       <span id="nav-email" class="dd-muted hidden sm:inline truncate" style="max-width:220px"></span>
       <button id="theme-btn" class="btn btn-sm btn-ghost" title="Toggle theme" aria-label="Toggle theme">

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100" role="img" aria-label="Intern 01 - Newsrun Tracker">
+  <rect x="30" y="72" width="11" height="17" rx="5.5" fill="#98341B"/>
+  <rect x="58" y="74" width="11" height="14" rx="5.5" fill="#98341B"/>
+  <rect x="16" y="46" width="10" height="23" rx="5" fill="#98341B" transform="rotate(12 21 48)"/>
+  <rect x="74" y="46" width="10" height="23" rx="5" fill="#98341B" transform="rotate(-12 79 48)"/>
+  <path d="M50 30 V21" stroke="#98341B" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <rect x="43.5" y="4.5" width="13" height="18" rx="6.5" fill="none" stroke="#98341B" stroke-width="3"/>
+  <rect x="48" y="9" width="4" height="9" rx="2" fill="#98341B"/>
+  <rect x="23" y="26" width="54" height="52" rx="12" fill="#E8927C" stroke="#98341B" stroke-width="3"/>
+  <rect x="30" y="33" width="40" height="5" rx="1" fill="#98341B"/>
+  <rect x="30" y="41" width="24" height="3" rx="1.5" fill="#EBC9C0"/>
+  <circle cx="40" cy="55" r="5" fill="#98341B"/>
+  <circle cx="60" cy="55" r="5" fill="#98341B"/>
+  <path d="M27 64 H73" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M36 70 V74 M50 70 V74 M64 70 V74" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+</svg>

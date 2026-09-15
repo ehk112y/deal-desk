@@ -138,12 +138,17 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
   display:flex; align-items:center; gap:10px; }
 .dd-who { min-width:0; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 /* each module is an intern: a small monochrome glyph and a numbered label, nothing louder */
-.dd-ava { flex:none; color:currentColor; }
+.dd-ava { flex:none; }
 .dd-eyebrow { flex:none; font-size:12px; letter-spacing:.01em;
   font-variant-numeric:tabular-nums; color:var(--dd-muted); }
 .dd-plate .dd-eyebrow { color:color-mix(in srgb,#E3DCC2 55%,#1B2021); }
+/* three 40px ledger rows of desk scene; 160px above the index keeps the ruling locked */
+.dd-scene { display:block; flex:none; width:480px; height:120px; margin:112px 0 0; }
+.dd-scene .turn { visibility:hidden; transform-box:view-box; }
+.dd-scene .i1 .turn { transform-origin:120px 40px; }
+.dd-scene .i2 .turn { transform-origin:360px 40px; }
 /* its own 40px ledger row directly above the index, so the ruling stays phase-locked */
-.dd-index-note { display:flex; align-items:center; height:40px; margin:112px 0 0;
+.dd-index-note { display:flex; align-items:center; height:40px; margin:0;
   letter-spacing:.04em; }
 .dd-index dd { flex:none; width:var(--dd-col); margin:0; padding-left:13px; box-sizing:border-box;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -194,7 +199,6 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
 .dd-desk-title { margin:0 0 32px; font-size:26px; line-height:32px; font-weight:600;
   letter-spacing:-.02em; }
 .dd-tile-head { display:flex; align-items:center; gap:12px; }
-.dd-tile-head .dd-ava { color:var(--color-base-content); }
 .dd-tile-id { min-width:0; }
 .dd-tile-id .dd-eyebrow { display:block; margin-bottom:2px; }
 .dd-tile h2 { margin:0; font-size:20px; font-weight:600; line-height:1.2; letter-spacing:-.02em; }
@@ -237,12 +241,26 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
   .dd-rule-v { transform-origin:center top; animation:dd-draw-y 360ms cubic-bezier(.22,.61,.36,1) 40ms both; }
   .dd-wordmark { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 40ms both; }
   .dd-plate-line { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 80ms both; }
+  .dd-scene { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 80ms both; }
   .dd-index-note { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 100ms both; }
   .dd-index > div:nth-child(1) { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 120ms both; }
   .dd-index > div:nth-child(2) { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 160ms both; }
   .dd-spark { transition:opacity 180ms linear; }
   .dd-spark.on { opacity:.035; transition-duration:100ms; }
   .dd-tabs::after { transition:transform 160ms cubic-bezier(.22,.61,.36,1); }
+
+  /* Sign-in hand-off: the plate's black sweeps right to fill the viewport and the form
+     fades; then a blur covers the DOM swap. Only ever runs on an explicit sign-in, and
+     only from inside this media query, so reduced motion never sees any of it. */
+  html.bt-signin .dd-entrance { display:grid !important; }
+  html.bt-signin #scr-auth { display:block !important; }
+  html.bt-signin #scr-main { display:none !important; }
+  html.bt-signin .dd-entry { opacity:0; transition:opacity 200ms linear; }
+  .bt-wipe { position:fixed; top:0; bottom:0; right:0; z-index:60; background:#1B2021;
+    transform:scaleX(0); transform-origin:left center; }
+  .bt-wipe.go { transform:scaleX(1); transition:transform 600ms cubic-bezier(.22,1,.36,1); }
+  html.bt-anim body { transition:filter 400ms linear; }
+  html.bt-blur body { filter:blur(8px); transition:filter 250ms linear; }
   .input { transition:border-color 150ms linear,background-color 120ms linear; }
   .dd-tile { transition:transform 150ms ease,background-color 120ms linear,border-color 120ms linear; }
   .dd-tile:hover { transform:translateY(-2px); }
@@ -256,7 +274,7 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
   .dd-entrance { grid-template-columns:minmax(0,1fr); grid-template-rows:auto 1fr; }
   .dd-plate { flex-direction:row; align-items:center; justify-content:flex-start; gap:0; height:64px;
     padding:0 64px 0 20px; border-right:0; border-bottom:1px solid #51513D; }
-  .dd-rule-v,.dd-spark,.dd-plate-line,.dd-index-note,.dd-index { display:none; }
+  .dd-rule-v,.dd-spark,.dd-plate-line,.dd-scene,.dd-index-note,.dd-index { display:none; }
   .dd-wordmark { font-size:20px; line-height:24px; letter-spacing:-.02em; white-space:nowrap; }
   .dd-entry { align-items:flex-start; padding:48px 20px 40px; }
   .dd-entry > section { max-width:360px; }
@@ -288,17 +306,6 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
 <!-- Inline icons -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
-    <!-- the two interns: monochrome, they take their colour from whatever they sit on -->
-    <g id="i-intern-1">
-      <rect x="1.2" y="1.2" width="21.6" height="21.6" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".5"/>
-      <circle cx="8.4" cy="8.6" r="3.6" fill="currentColor" opacity=".9"/>
-      <path d="M4.4 15.6h15.2M4.4 19.2h9.6" stroke="currentColor" stroke-width="1.6" opacity=".42" stroke-linecap="square"/>
-    </g>
-    <g id="i-intern-2">
-      <rect x="1.2" y="1.2" width="21.6" height="21.6" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".5"/>
-      <path d="M12 4.6v14.8M4.6 12h14.8" stroke="currentColor" stroke-width="1.4" opacity=".42"/>
-      <rect x="12" y="12" width="7.4" height="7.4" fill="currentColor" opacity=".9"/>
-    </g>
     <g id="i-theme"><path d="M13.5 9.6A5.5 5.5 0 016.4 2.5a5.6 5.6 0 107.1 7.1z"/></g>
     <g id="i-out"><path d="M9.5 11.5L12.5 8 9.5 4.5M12.5 8H5M6.5 2.5h-4v11h4"/></g>
   </defs>
@@ -325,11 +332,95 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
       <h1 class="dd-wordmark">Bankers’ Toolkit</h1>
       <p class="dd-plate-line">A bunch of interns working below minimum wage. Legally.</p>
     </div>
+    <svg class="dd-scene" width="480" height="120" viewBox="0 0 480 120" aria-hidden="true">
+      <g stroke="#E3DC95" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round" fill="none">
+          <path d="M46 92 H194"/>
+          <path d="M54 92 V114 M186 92 V114"/>
+          <rect x="152" y="80" width="34" height="9" rx="2"/>
+          <rect x="156" y="73" width="26" height="7" rx="2"/>
+        </g>
+        <g stroke="#E3DC95" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round" fill="none">
+          <path d="M286 92 H434"/>
+          <path d="M294 92 V114 M426 92 V114"/>
+          <rect x="390" y="60" width="38" height="26" rx="3"/>
+          <path d="M409 86 V91 M400 92 H418"/>
+        </g>
+        <g class="i1">
+          <g class="back">
+          <rect x="86" y="50" width="10" height="42" rx="5" fill="#98341B" transform="rotate(-10 91 56)"/><rect x="144" y="50" width="10" height="42" rx="5" fill="#98341B" transform="rotate(10 149 56)"/>
+          <path d="M120 36 V26" stroke="#98341B" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <rect x="113.5" y="8" width="13" height="18" rx="6.5" fill="none" stroke="#98341B" stroke-width="3"/>
+            <rect x="118" y="12.5" width="4" height="9" rx="2" fill="#98341B"/>
+          <rect x="93" y="32" width="54" height="54" rx="12" fill="#E8927C" stroke="#98341B" stroke-width="3"/>
+          <rect x="97" y="40" width="46" height="5" rx="2.5" fill="#98341B"/>
+          <rect x="97" y="49" width="46" height="3" rx="1.5" fill="#EBC9C0"/>
+          <path d="M103 64 H137" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <path d="M120 68 V80" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+        </g>
+          <g class="turn" visibility="hidden">
+          <rect x="86" y="50" width="10" height="42" rx="5" fill="#98341B" transform="rotate(4 91 56)"/><rect x="144" y="50" width="10" height="42" rx="5" fill="#98341B" transform="rotate(10 149 56)"/>
+          <g transform="rotate(-7 120 62) translate(-4 -3)">
+            <path d="M120 36 V26" stroke="#98341B" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <rect x="113.5" y="8" width="13" height="18" rx="6.5" fill="none" stroke="#98341B" stroke-width="3"/>
+            <rect x="118" y="12.5" width="4" height="9" rx="2" fill="#98341B"/>
+            <rect x="93" y="32" width="54" height="54" rx="12" fill="#E8927C" stroke="#98341B" stroke-width="3"/>
+            <rect x="122" y="40" width="21" height="5" rx="2.5" fill="#98341B"/>
+            <rect x="122" y="49" width="21" height="3" rx="1.5" fill="#EBC9C0"/>
+            <circle cx="105" cy="56" r="5" fill="#98341B"/>
+            <circle cx="118" cy="56" r="5" fill="#98341B"/>
+            <path d="M126 72 H140" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+          </g>
+        </g>
+        </g>
+        <g class="i2">
+          <g class="back">
+          <rect x="326" y="50" width="10" height="42" rx="5" fill="#256F27" transform="rotate(-10 331 56)"/><rect x="384" y="50" width="10" height="42" rx="5" fill="#256F27" transform="rotate(10 389 56)"/>
+          <g transform="rotate(32 380 30)">
+            <rect x="375" y="6" width="10" height="24" rx="2" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
+            <path d="M375 30 L380 39 L385 30 Z" fill="#256F27"/>
+            <rect x="375" y="15" width="10" height="3" fill="#256F27"/>
+          </g>
+          <rect x="333" y="32" width="54" height="54" rx="12" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
+          <path d="M336 60 H384" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <path d="M360 64 V80" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+        </g>
+          <g class="turn" visibility="hidden">
+          <rect x="326" y="50" width="10" height="42" rx="5" fill="#256F27" transform="rotate(4 331 56)"/><rect x="384" y="50" width="10" height="42" rx="5" fill="#256F27" transform="rotate(10 389 56)"/>
+          <g transform="rotate(-7 360 62) translate(-4 -3)">
+            <g transform="rotate(32 380 30)">
+            <rect x="375" y="6" width="10" height="24" rx="2" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
+            <path d="M375 30 L380 39 L385 30 Z" fill="#256F27"/>
+            <rect x="375" y="15" width="10" height="3" fill="#256F27"/>
+          </g>
+            <rect x="333" y="32" width="54" height="54" rx="12" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
+            <circle cx="345" cy="56" r="5" fill="#256F27"/>
+            <circle cx="358" cy="56" r="5" fill="#256F27"/>
+            <path d="M362 70 H382" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <path d="M372 70 V80" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+          </g>
+        </g>
+        </g>
+    </svg>
     <p class="dd-index-note dd-eyebrow">2 interns standing by</p>
     <dl class="dd-index">
       <div>
         <dt>
-          <svg class="dd-ava" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-intern-1"/></svg>
+          <svg class="dd-ava" width="28" height="28" viewBox="0 0 100 100" aria-hidden="true">
+            <rect x="30" y="72" width="11" height="17" rx="5.5" fill="#98341B"/>
+            <rect x="58" y="74" width="11" height="14" rx="5.5" fill="#98341B"/>
+            <rect x="16" y="46" width="10" height="23" rx="5" fill="#98341B" transform="rotate(12 21 48)"/>
+            <rect x="74" y="46" width="10" height="23" rx="5" fill="#98341B" transform="rotate(-12 79 48)"/>
+            <path d="M50 30 V21" stroke="#98341B" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <rect x="43.5" y="4.5" width="13" height="18" rx="6.5" fill="none" stroke="#98341B" stroke-width="3"/>
+            <rect x="48" y="9" width="4" height="9" rx="2" fill="#98341B"/>
+            <rect x="23" y="26" width="54" height="52" rx="12" fill="#E8927C" stroke="#98341B" stroke-width="3"/>
+            <rect x="30" y="33" width="40" height="5" rx="1" fill="#98341B"/>
+            <rect x="30" y="41" width="24" height="3" rx="1.5" fill="#EBC9C0"/>
+            <circle cx="40" cy="55" r="5" fill="#98341B"/>
+            <circle cx="60" cy="55" r="5" fill="#98341B"/>
+            <path d="M27 64 H73" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <path d="M36 70 V74 M50 70 V74 M64 70 V74" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+          </svg>
           <span class="dd-eyebrow">Intern 01</span>
           <span class="dd-who">Newsrun Tracker</span>
         </dt>
@@ -337,7 +428,22 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
       </div>
       <div>
         <dt>
-          <svg class="dd-ava" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-intern-2"/></svg>
+          <svg class="dd-ava" width="28" height="28" viewBox="0 0 100 100" aria-hidden="true">
+            <rect x="30" y="74" width="13" height="14" rx="4.5" fill="#256F27"/>
+            <rect x="57" y="74" width="13" height="14" rx="4.5" fill="#256F27"/>
+            <g transform="rotate(8 89 56)">
+            <rect x="84" y="40" width="10" height="22" rx="2" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
+            <path d="M84 62 L89 71 L94 62 Z" fill="#256F27"/>
+            <rect x="84" y="49" width="10" height="3" fill="#256F27"/>
+            </g>
+            <rect x="20" y="32" width="60" height="46" rx="12" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
+            <path d="M24 60 H76" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <path d="M50 63 V75" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <circle cx="39" cy="47" r="5" fill="#256F27"/>
+            <circle cx="61" cy="47" r="5" fill="#256F27"/>
+            <rect x="14" y="44" width="10" height="24" rx="5" fill="#256F27"/>
+            <rect x="76" y="44" width="10" height="24" rx="5" fill="#256F27"/>
+          </svg>
           <span class="dd-eyebrow">Intern 02</span>
           <span class="dd-who">Financials (DART)</span>
         </dt>
@@ -389,7 +495,22 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
     <div class="dd-tiles">
       <a class="dd-tile" href="newsrun/">
         <div class="dd-tile-head">
-          <svg class="dd-ava" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-intern-1"/></svg>
+          <svg class="dd-ava" width="48" height="48" viewBox="0 0 100 100" aria-hidden="true">
+            <rect x="30" y="72" width="11" height="17" rx="5.5" fill="#98341B"/>
+            <rect x="58" y="74" width="11" height="14" rx="5.5" fill="#98341B"/>
+            <rect x="16" y="46" width="10" height="23" rx="5" fill="#98341B" transform="rotate(12 21 48)"/>
+            <rect x="74" y="46" width="10" height="23" rx="5" fill="#98341B" transform="rotate(-12 79 48)"/>
+            <path d="M50 30 V21" stroke="#98341B" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <rect x="43.5" y="4.5" width="13" height="18" rx="6.5" fill="none" stroke="#98341B" stroke-width="3"/>
+            <rect x="48" y="9" width="4" height="9" rx="2" fill="#98341B"/>
+            <rect x="23" y="26" width="54" height="52" rx="12" fill="#E8927C" stroke="#98341B" stroke-width="3"/>
+            <rect x="30" y="33" width="40" height="5" rx="1" fill="#98341B"/>
+            <rect x="30" y="41" width="24" height="3" rx="1.5" fill="#EBC9C0"/>
+            <circle cx="40" cy="55" r="5" fill="#98341B"/>
+            <circle cx="60" cy="55" r="5" fill="#98341B"/>
+            <path d="M27 64 H73" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <path d="M36 70 V74 M50 70 V74 M64 70 V74" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+          </svg>
           <div class="dd-tile-id">
             <span class="dd-eyebrow">Intern 01</span>
             <h2>Newsrun Tracker</h2>
@@ -403,7 +524,22 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
       </a>
       <a class="dd-tile" href="financials/">
         <div class="dd-tile-head">
-          <svg class="dd-ava" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-intern-2"/></svg>
+          <svg class="dd-ava" width="48" height="48" viewBox="0 0 100 100" aria-hidden="true">
+            <rect x="30" y="74" width="13" height="14" rx="4.5" fill="#256F27"/>
+            <rect x="57" y="74" width="13" height="14" rx="4.5" fill="#256F27"/>
+            <g transform="rotate(8 89 56)">
+            <rect x="84" y="40" width="10" height="22" rx="2" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
+            <path d="M84 62 L89 71 L94 62 Z" fill="#256F27"/>
+            <rect x="84" y="49" width="10" height="3" fill="#256F27"/>
+            </g>
+            <rect x="20" y="32" width="60" height="46" rx="12" fill="#9DBF9E" stroke="#256F27" stroke-width="3"/>
+            <path d="M24 60 H76" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <path d="M50 63 V75" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <circle cx="39" cy="47" r="5" fill="#256F27"/>
+            <circle cx="61" cy="47" r="5" fill="#256F27"/>
+            <rect x="14" y="44" width="10" height="24" rx="5" fill="#256F27"/>
+            <rect x="76" y="44" width="10" height="24" rx="5" fill="#256F27"/>
+          </svg>
           <div class="dd-tile-id">
             <span class="dd-eyebrow">Intern 02</span>
             <h2>Financials (DART)</h2>
@@ -640,6 +776,88 @@ if (demo) {
     });
   });
   plate.addEventListener('pointerleave', () => spark.classList.remove('on'));
+
+  /* Sign-in hand-off. The auth script is untouched: we only watch its own state change,
+     and only after the person actually pressed Sign in. */
+  const html = document.documentElement;
+  const main = document.getElementById('scr-main');
+  let signingIn = false;
+  document.getElementById('au-form').addEventListener('submit', () => {
+    signingIn = document.getElementById('tab-signin').getAttribute('aria-selected') === 'true';
+  });
+  new MutationObserver(() => {
+    if (!signingIn || main.classList.contains('hidden')) return;
+    signingIn = false;
+    const stacked = getComputedStyle(plate).flexDirection === 'row';
+    const wipe = document.createElement('div');
+    wipe.className = 'bt-wipe';
+    wipe.style.left = (stacked ? 0 : Math.round(plate.getBoundingClientRect().right)) + 'px';
+    html.classList.add('bt-anim', 'bt-signin');
+    document.body.appendChild(wipe);
+    requestAnimationFrame(() => requestAnimationFrame(() => wipe.classList.add('go')));
+    setTimeout(() => html.classList.add('bt-blur'), 600);
+    setTimeout(() => {                    // the swap happens while the blur hides it
+      html.classList.remove('bt-signin');
+      wipe.remove();
+      scrollTo(0, 0);
+    }, 850);
+    setTimeout(() => html.classList.remove('bt-blur'), 870);
+    setTimeout(() => html.classList.remove('bt-anim'), 1300);
+  }).observe(main, { attributes: true, attributeFilter: ['class'] });
+
+  /* Desk scene: every 5s one intern glances back, alternating. Catch them at it and they
+     snap forward with a jolt, then keep their head down for twice as long. */
+  const scene = document.querySelector('.dd-scene');
+  if (scene) {
+    const crew = [scene.querySelector('.i1'), scene.querySelector('.i2')];
+    const EASE = 'cubic-bezier(.22,1,.36,1)';
+    let over = false, turn$ = 0, timer = null;
+    plate.addEventListener('pointerenter', () => { over = true; });
+    plate.addEventListener('pointerleave', () => { over = false; });
+
+    const glance = g => new Promise(resolve => {
+      const back = g.querySelector('.back'), turn = g.querySelector('.turn');
+      let hold = null, done = false;
+      back.style.visibility = 'hidden';
+      turn.style.visibility = 'visible';
+      turn.animate([{ transform: 'rotate(-12deg)' }, { transform: 'rotate(0deg)' }],
+        { duration: 350, easing: EASE, fill: 'forwards' });
+      const stop = () => {
+        clearTimeout(hold);
+        plate.removeEventListener('pointermove', caught);
+        plate.removeEventListener('pointerenter', caught);
+        removeEventListener('focus', caught);
+      };
+      const back_ = (ms, jolt) => {
+        if (done) return; done = true; stop();
+        if (jolt) g.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(2px)' },
+          { transform: 'translateX(-2px)' }, { transform: 'translateX(0)' }], { duration: ms });
+        const a = turn.animate([{ transform: 'rotate(0deg)' }, { transform: 'rotate(-12deg)' }],
+          { duration: ms, easing: 'ease-in', fill: 'forwards' });
+        a.onfinish = () => {
+          turn.style.visibility = 'hidden';
+          back.style.visibility = 'visible';
+          turn.getAnimations().forEach(x => x.cancel());
+          resolve(jolt);
+        };
+      };
+      const caught = () => back_(120, true);            // "caught looking"
+      if (over) { setTimeout(caught, 350); return; }
+      plate.addEventListener('pointermove', caught);
+      plate.addEventListener('pointerenter', caught);
+      addEventListener('focus', caught);
+      hold = setTimeout(() => back_(400, false), 1050); // 350 in + 700 hold
+    });
+
+    const next = ms => { clearTimeout(timer); timer = setTimeout(run, ms); };
+    async function run() {
+      if (document.hidden) return next(5000);
+      const jolt = await glance(crew[turn$++ % 2]);
+      next(jolt ? 10000 : 5000);                        // skip a turn after being caught
+    }
+    document.addEventListener('visibilitychange', () => document.hidden ? clearTimeout(timer) : next(5000));
+    next(5000);
+  }
 })();
 </script>
 </body>
