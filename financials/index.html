@@ -168,13 +168,16 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margi
 .dd-custom { height:auto; padding:8px 0; gap:8px; border-bottom:0; }
 #mx-empty { padding:16px 4px; }
 
-/* Register: one request per row, status on the same line. */
-#req-list > button { background:transparent; padding:8px; border-radius:0; text-align:left;
-  border-bottom:1px solid var(--dd-border); font-size:13px; min-height:36px; }
-#req-list > button:first-child { border-top:1px solid var(--dd-border); }
-#req-list > button:hover { background:var(--dd-hover); }
-#req-list > button[aria-current="true"] { background:var(--dd-selected); color:var(--dd-selected-ink); }
-#req-list > button[aria-current="true"] .dd-muted { color:var(--dd-selected-ink); }
+/* Register: one request per row, status on the same line, pin and delete at the right edge. */
+.dd-ritem { display:flex; align-items:center; padding-right:4px;
+  border-bottom:1px solid var(--dd-border); }
+#req-list > .dd-ritem:first-child { border-top:1px solid var(--dd-border); }
+.dd-ritem:hover { background:var(--dd-hover); }
+.dd-ritem:has([aria-current="true"]) { background:var(--dd-selected); color:var(--dd-selected-ink); }
+.dd-ritem:has([aria-current="true"]) :is(.dd-muted,.dd-mact .btn) { color:var(--dd-selected-ink); }
+.dd-ropen { flex:1 1 auto; min-width:0; background:transparent; padding:8px; border-radius:0;
+  text-align:left; font-size:13px; min-height:36px; }
+.dd-ritem:has([aria-current="true"]) .dd-mact .btn:hover { color:var(--color-base-content); }
 .badge { font-size:13px; text-transform:capitalize; letter-spacing:0; font-weight:500; height:20px; min-height:20px; }
 .dd-b-done,.dd-b-wait,.dd-b-err,.dd-b-mute { border:0; border-radius:0; padding:0; background:transparent; color:inherit; }
 .dd-b-done::before,.dd-b-wait::before { content:""; width:4px; height:4px; background:var(--color-primary); flex:none; }
@@ -785,7 +788,8 @@ const BADGE = { pending: 'dd-b-wait', running: 'dd-b-wait', done: 'dd-b-done', e
 let reqs = [], openId = null, me = null, channel = null;
 
 async function loadRequests() {
-  const { data, error } = await sb.from('fin_requests').select('*').order('created_at', { ascending: false });
+  const { data, error } = await sb.from('fin_requests').select('*')
+    .order('pinned', { ascending: false }).order('created_at', { ascending: false });
   if (error) return toast('Could not refresh requests');
   reqs = data || [];
   renderRequests();
@@ -811,9 +815,43 @@ function openRequest(r) {
   renderResult();
 }
 
+/* The xlsx in storage is left alone on purpose: the bucket is worker-owned (no web delete policy). */
+async function deleteRequest(r) {
+  if (!confirm('Delete the request for ' + r.company + '?')) return;
+  if (!demo) {
+    const { error } = await sb.from('fin_requests').delete().eq('id', r.id);
+    if (error) return toast('Could not delete the request');
+  }
+  reqs = reqs.filter(x => x.id !== r.id);
+  if (openId === r.id) { openId = null; renderResult(); }
+  renderRequests();
+}
+
+async function togglePin(r) {
+  if (!demo) {
+    const { error } = await sb.from('fin_requests').update({ pinned: !r.pinned }).eq('id', r.id);
+    if (error) return toast('Could not change the pin');
+  }
+  r.pinned = !r.pinned;
+  reqs.sort((a, b) => !!b.pinned - !!a.pinned);   // stable: newest-first order survives inside each group
+  renderRequests();
+}
+
+function reqAction(r, key, glyph, label, onclick) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'btn';
+  b.dataset.key = r.id + '|' + key;
+  b.textContent = glyph;
+  b.title = label;
+  b.setAttribute('aria-label', label);
+  b.onclick = onclick;
+  return b;
+}
+
 function renderRequests() {
   const host = $('req-list');
-  const refocus = host.contains(document.activeElement) ? document.activeElement.dataset.id : null;
+  const refocus = host.contains(document.activeElement) ? document.activeElement.dataset.key : null;
   host.textContent = '';
   if (!reqs.length) {
     const empty = document.createElement('div');
@@ -823,9 +861,12 @@ function renderRequests() {
     return;
   }
   reqs.forEach(r => {
+    const row = document.createElement('div');
+    row.className = 'dd-ritem';
     const b = document.createElement('button');
     b.type = 'button';
-    b.dataset.id = r.id;
+    b.className = 'dd-ropen';
+    b.dataset.key = r.id + '|open';
     b.setAttribute('aria-current', String(r.id === openId));
     const top = document.createElement('div');
     top.className = 'flex items-center justify-between gap-2';
@@ -841,9 +882,15 @@ function renderRequests() {
     sub.textContent = periodLabel(r);
     b.append(top, sub);
     b.onclick = () => openRequest(r);
-    host.append(b);
+    const acts = document.createElement('div');
+    acts.className = 'dd-mact';
+    const pin = reqAction(r, 'pin', r.pinned ? '★' : '☆', 'Pin request', () => togglePin(r));
+    pin.setAttribute('aria-pressed', String(!!r.pinned));
+    acts.append(pin, reqAction(r, 'del', '✕', 'Delete request', () => deleteRequest(r)));
+    row.append(b, acts);
+    host.append(row);
   });
-  if (refocus) host.querySelector('[data-id="' + refocus + '"]')?.focus({ preventScroll: true });
+  if (refocus) host.querySelector('[data-key="' + refocus + '"]')?.focus({ preventScroll: true });
 }
 
 /* ---------- The summary sheet (also the composer) ---------- */
