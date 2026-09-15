@@ -1,4 +1,4 @@
-Deal Desk on GitHub Pages: built copies of the NewsRun and Financials pages (https://ehk112y.github.io/deal-desk/). Sources live in ../NewsRun/web and ../Financials/web — edit those, not the copies.
+Bankers’ Toolkit on GitHub Pages: built copies of the NewsRun and Financials pages (https://ehk112y.github.io/deal-desk/). Sources live in ../NewsRun/web and ../Financials/web — edit those, not the copies.
 Build: `node deploy.js`
 Publish: `git add -A && git commit -m "deploy" && git push`
 

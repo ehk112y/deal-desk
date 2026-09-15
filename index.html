@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Deal Desk</title>
+<title>Bankers’ Toolkit</title>
+<meta name="description" content="Bankers’ Toolkit: curated news runs and DART financial back data for deal work.">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
@@ -11,7 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0"></script>
 <style>
-/* Deal Desk: the suite index and the only sign-in surface. Same shell tokens as the two modules. */
+/* Bankers' Toolkit: the suite index and the only sign-in surface. Same shell tokens as the two modules. */
 [data-theme="deal"] {
   color-scheme:light;
   --color-base-100:#FFFFFF;
@@ -98,58 +99,73 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
   border-left:1px solid #51513D; border-radius:0; margin-left:8px; }
 
 /* The entrance: a ruled brand plate beside the form. Shown only while a form is on screen. */
-.dd-entrance { display:none; grid-template-columns:42fr 58fr; min-height:100vh; }
+/* 2fr : 1fr holds the 2/3 split wherever the form fits; the 408px floor (360 + two 24px
+   gutters) keeps the form from shrinking in the last stretch before the stacked layout. */
+.dd-entrance { display:none; grid-template-columns:2fr minmax(408px,1fr); min-height:100vh; }
 .dd-entrance:has(> .dd-entry > section:not(.hidden)) { display:grid; }
 
-.dd-plate { position:relative; overflow:hidden; box-sizing:border-box;
+.dd-plate { --dd-col:clamp(330px,32vw,470px);
+  position:relative; overflow:hidden; box-sizing:border-box;
   display:flex; flex-direction:column; justify-content:center; padding:64px;
-  background-color:#1B2021; color:#E3DCC2; border-right:1px solid #51513D;
-  /* the pad's ruling: same 40px pitch as the index, phase-locked so a rule lands on each
-     index border (bottom 24px + 40px image = a line 64px above the plate's bottom edge) */
+  background-color:#1B2021; color:#E3DCC2; border-right:1px solid #51513D; }
+/* The pad's ruling lives inside the index and overruns the plate (clipped by it), so a
+   rule lands on the index's own top border and on every 40px row border from there —
+   wherever the centred group happens to sit. 2000px is a whole number of 40px rows. */
+.dd-index::before { content:""; position:absolute; left:-64px; right:-64px;
+  top:-2000px; bottom:-2000px; pointer-events:none;
   background-image:linear-gradient(to bottom,rgba(227,220,194,.035) 0 1px,transparent 1px);
-  background-size:100% 40px; background-position:left 0 bottom 24px; }
+  background-size:100% 40px; background-position:left 0 top 0; }
 /* the source column of a columnar pad, ruled top to bottom */
-.dd-plate::after { content:""; position:absolute; inset:0 64px 0 auto; width:152px;
+.dd-rule-v { position:absolute; top:0; bottom:0; right:64px; width:var(--dd-col);
   border-left:1px solid rgba(227,220,194,.10); border-right:1px solid rgba(227,220,194,.10);
   pointer-events:none; }
-.dd-plate-head { display:flex; flex-direction:column; gap:24px; }
-.dd-wordmark { margin:0; font-size:64px; line-height:64px; font-weight:600;
+/* one highlight cell that follows the pointer; it snaps between cells and only fades */
+.dd-spark { position:absolute; left:0; top:0; width:0; height:0; opacity:0;
+  pointer-events:none; background:#E3DCC2; }
+.dd-plate-head { display:flex; flex-direction:column; gap:20px; }
+.dd-wordmark { margin:0; font-size:72px; line-height:76px; font-weight:600;
   letter-spacing:-.03em; color:#E3DC95; white-space:pre-line; }
-.dd-plate-line { margin:0; max-width:30ch; font-size:15px; line-height:1.6;
+/* one line at 1440; it wraps rather than shrinking when the plate narrows */
+.dd-plate-line { margin:0; max-width:56ch; font-size:15px; line-height:24px;
   color:color-mix(in srgb,#E3DCC2 76%,#1B2021); }
-.dd-index { margin:0; position:absolute; left:64px; right:64px; bottom:64px;
-  display:flex; flex-direction:column; }
+.dd-index { margin:112px 0 0; position:relative;
+  display:flex; flex-direction:column; font-size:13px; line-height:20px; }
 .dd-index > div { display:flex; align-items:center; height:40px;
   border-top:1px solid rgba(227,220,194,.14); }
 .dd-index > div:last-child { border-bottom:1px solid rgba(227,220,194,.14); }
-.dd-index dt { flex:1 1 auto; min-width:0; padding-right:12px; font-weight:500;
+.dd-index dt { flex:1 1 auto; min-width:0; padding-right:12px; font-weight:600;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.dd-index dd { flex:none; width:152px; margin:0; padding-left:13px; box-sizing:border-box;
+.dd-index dd { flex:none; width:var(--dd-col); margin:0; padding-left:13px; box-sizing:border-box;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   color:color-mix(in srgb,#E3DCC2 70%,#1B2021); }
 
 .dd-entry { display:flex; align-items:center; justify-content:center; box-sizing:border-box;
-  padding:64px 40px; background:var(--dd-lift); }
+  padding:64px 24px; background:var(--dd-lift); }
 .dd-entry > section { width:100%; max-width:360px; }
 .dd-entry .input,.dd-entry .btn-primary { height:44px; min-height:44px; }
 .dd-entry .input { font-size:16px; padding-inline:12px; }
 .dd-entry h2 { margin:0 0 24px; font-size:26px; line-height:32px; font-weight:600;
   letter-spacing:-.02em; }
 
-/* Sign in / Create account: one form, a segmented switch above it. */
-.dd-tabs { display:flex; border-bottom:1px solid var(--dd-border); margin-bottom:16px; }
+/* Sign in / Create account: one form, a segmented switch above it. The underline is a
+   single rule that slides; the existing aria-selected attribute drives it. */
+.dd-tabs { position:relative; display:flex; border-bottom:1px solid var(--dd-border); margin-bottom:16px; }
+.dd-tabs::after { content:""; position:absolute; left:0; bottom:-1px; width:50%; height:2px;
+  background:var(--color-primary); }
+.dd-tabs:has(#tab-signup[aria-selected="true"])::after { transform:translateX(100%); }
 .dd-tabs .btn { flex:1; height:40px; min-height:40px; background:transparent; border:0;
-  border-bottom:2px solid transparent; border-radius:0; color:var(--dd-muted);
-  font-size:14px; font-weight:400; padding-inline:4px; }
+  border-radius:0; color:var(--dd-muted); font-size:14px; font-weight:400; padding-inline:4px; }
 .dd-tabs .btn:hover { background:var(--dd-work); }
-.dd-tabs .btn[aria-selected="true"] { color:var(--color-base-content); font-weight:600;
-  border-bottom-color:var(--color-primary); }
-#au-form,#pw-form { display:flex; flex-direction:column; gap:8px; margin:0; }
+.dd-tabs .btn[aria-selected="true"] { color:var(--color-base-content); font-weight:600; }
 /* the 8px flex gap carries label -> field; the margins top it up to 20px between
    groups and 24px before the submit. */
+#au-form,#pw-form { display:flex; flex-direction:column; gap:8px; margin:0; }
 #au-form > label,#pw-form > label { color:var(--dd-muted); margin-top:12px; }
 #au-form > label:first-of-type,#pw-form > label:first-of-type { margin-top:0; }
 #au-submit,#pw-form .btn-primary { margin-top:16px; }
-#au-forgot { align-self:flex-start; height:24px; min-height:24px; padding:0; margin-top:4px;
+/* underline only at rest, but a full 44px target */
+#au-forgot { align-self:flex-start; display:inline-flex; align-items:center;
+  height:auto; min-height:44px; padding:0; margin-top:0;
   border:0; box-shadow:none; background:transparent; color:var(--dd-muted); font-weight:400;
   text-decoration:underline; text-underline-offset:3px; }
 #au-forgot:hover { color:var(--color-base-content); }
@@ -168,7 +184,7 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
 .dd-tile-head { display:flex; align-items:center; gap:10px; }
 .dd-tile-head svg { flex:none; color:var(--dd-muted); }
 .dd-tile h2 { margin:0; font-size:20px; font-weight:600; line-height:1.2; letter-spacing:-.02em; }
-.dd-tile p { margin:0; max-width:34ch; color:var(--dd-muted); }
+.dd-tile p { margin:0; color:var(--dd-muted); }
 .dd-tile-foot { margin-top:auto; padding-top:16px; display:flex; flex-wrap:wrap;
   align-items:flex-end; justify-content:space-between; gap:8px 16px;
   border-top:1px solid var(--dd-border); }
@@ -195,17 +211,42 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
   transition:opacity 120ms linear,background-color 120ms linear; }
 .dd-acl-x:hover { background:var(--dd-hover); color:var(--color-base-content); }
 
-@media (max-width:899px) {
-  /* the plate collapses to a slim header; its ruling goes with it */
+/* Motion. Everything below is opt-in: at rest under prefers-reduced-motion: reduce,
+   which is also why the resting styles above never hide anything. */
+@media (prefers-reduced-motion:no-preference) {
+  @keyframes dd-draw-x { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+  @keyframes dd-draw-y { from { transform:scaleY(0); } to { transform:scaleY(1); } }
+  @keyframes dd-rise { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  /* the pad is ruled, then written on: everything settles by 480ms, and the form is
+     never part of it. 40ms stagger; the last row starts at 160ms and ends at 480ms. */
+  .dd-index::before { transform-origin:left center; animation:dd-draw-x 360ms cubic-bezier(.22,.61,.36,1) both; }
+  .dd-rule-v { transform-origin:center top; animation:dd-draw-y 360ms cubic-bezier(.22,.61,.36,1) 40ms both; }
+  .dd-wordmark { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 40ms both; }
+  .dd-plate-line { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 80ms both; }
+  .dd-index > div:nth-child(1) { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 120ms both; }
+  .dd-index > div:nth-child(2) { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 160ms both; }
+  .dd-spark { transition:opacity 180ms linear; }
+  .dd-spark.on { opacity:.035; transition-duration:100ms; }
+  .dd-tabs::after { transition:transform 160ms cubic-bezier(.22,.61,.36,1); }
+  .input { transition:border-color 150ms linear,background-color 120ms linear; }
+  .dd-tile { transition:transform 150ms ease,background-color 120ms linear,border-color 120ms linear; }
+  .dd-tile:hover { transform:translateY(-2px); }
+  #theme-btn svg { transition:transform 150ms ease; }
+  #theme-btn:hover svg { transform:rotate(20deg); }
+}
+
+/* Stacked from 1100px down, so the 360px form never has to shrink in the split. */
+@media (max-width:1100px) {
+  /* the plate collapses to a slim header; its ruling and its motion go with it */
   .dd-entrance { grid-template-columns:minmax(0,1fr); grid-template-rows:auto 1fr; }
   .dd-plate { flex-direction:row; align-items:center; justify-content:flex-start; gap:0; height:64px;
-    padding:0 64px 0 20px; border-right:0; border-bottom:1px solid #51513D;
-    background-image:none; }
-  .dd-plate::after,.dd-plate-line,.dd-index { display:none; }
+    padding:0 64px 0 20px; border-right:0; border-bottom:1px solid #51513D; }
+  .dd-rule-v,.dd-spark,.dd-plate-line,.dd-index { display:none; }
   .dd-wordmark { font-size:20px; line-height:24px; letter-spacing:-.02em; white-space:normal; }
   .dd-entry { align-items:flex-start; padding:48px 20px 40px; }
   .dd-entry > section { max-width:360px; }
   .dd-topbar { padding:0 8px; }
+  .dd-topbar #theme-btn,.dd-topbar .logout-btn { min-width:44px; min-height:44px; padding-inline:8px; }
   body:has(.dd-entry > section:not(.hidden)) #theme-btn { color:#E3DCC2; }
 }
 @media (max-width:719px) {
@@ -215,7 +256,6 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
 @media (max-width:480px) {
   .dd-entry { padding-top:32px; }
   body:has(#scr-main:not(.hidden)) .dd-topbar { padding:0 12px; }
-  .dd-topbar #theme-btn,.dd-topbar .logout-btn { min-width:40px; min-height:40px; padding-inline:8px; }
 }
 @media (pointer:coarse) { .dd-acl-x { width:40px; height:40px; line-height:40px; } }
 @media (prefers-reduced-motion:reduce) { button,a,input,.btn,.dd-open { transition:none; } }
@@ -241,7 +281,7 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
 </svg>
 
 <header class="dd-topbar">
-  <span id="nav-brand" class="truncate hidden">Deal Desk</span>
+  <span id="nav-brand" class="truncate hidden">Bankers’ Toolkit</span>
   <span id="nav-email" class="dd-muted hidden sm:inline truncate"></span>
   <button id="theme-btn" class="btn btn-sm btn-ghost" title="Toggle theme" aria-label="Toggle theme">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-theme"/></svg>
@@ -255,14 +295,16 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
 <!-- The entrance: brand plate + whichever form is live. -->
 <div class="dd-entrance">
   <aside class="dd-plate">
+    <div class="dd-rule-v" aria-hidden="true"></div>
+    <div class="dd-spark" aria-hidden="true"></div>
     <div class="dd-plate-head">
-      <h1 class="dd-wordmark">Deal
-Desk</h1>
-      <p class="dd-plate-line">Company news and financial statements.</p>
+      <h1 class="dd-wordmark">Bankers’
+Toolkit</h1>
+      <p class="dd-plate-line">A bunch of interns working below minimum wage. Legally.</p>
     </div>
     <dl class="dd-index">
-      <div><dt>Newsrun Tracker</dt><dd>Naver news</dd></div>
-      <div><dt>Financials from DART</dt><dd>DART filings</dd></div>
+      <div><dt>Newsrun Tracker</dt><dd>Real-time, well-curated news run. Nothing missed.</dd></div>
+      <div><dt>Financials (DART)</dt><dd>Neatly organized, errorless Excel back data.</dd></div>
     </dl>
   </aside>
 
@@ -311,7 +353,7 @@ Desk</h1>
           <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-news"/></svg>
           <h2>Newsrun Tracker</h2>
         </div>
-        <p>Company news, curated into a PE brief</p>
+        <p>Real-time, well-curated news run. Nothing missed.</p>
         <div class="dd-tile-foot">
           <div id="stat-newsrun" class="dd-figure">&ndash;</div>
           <span class="dd-open">Open</span>
@@ -320,9 +362,9 @@ Desk</h1>
       <a class="dd-tile" href="financials/">
         <div class="dd-tile-head">
           <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#i-chart"/></svg>
-          <h2>Financials from DART</h2>
+          <h2>Financials (DART)</h2>
         </div>
-        <p>3FS back data and Summary workbook from DART filings</p>
+        <p>Neatly organized, errorless Excel back data.</p>
         <div class="dd-tile-foot">
           <div id="stat-financials" class="dd-figure">&ndash;</div>
           <span class="dd-open">Open</span>
@@ -514,6 +556,46 @@ if (demo) {
     boot(s);
   });
 }
+</script>
+
+<script>
+/* Motion layer. Observes the interface; never changes what it says or does.
+   Off entirely when the visitor asks for reduced motion. */
+(() => {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const plate = document.querySelector('.dd-plate');
+  const spark = document.querySelector('.dd-spark');
+  const vrule = document.querySelector('.dd-rule-v');
+  const index = document.querySelector('.dd-index');
+
+  /* A pad cell: a 40px row off the same grid the ruling uses (anchored to the index's
+     top border) by the column the source rules cut. One div, no per-cell DOM. */
+  const cell = (x, y) => {
+    const r = plate.getBoundingClientRect(), v = vrule.getBoundingClientRect();
+    const off = ((index.getBoundingClientRect().top - r.top) % 40 + 40) % 40;
+    const edges = [0, v.left - r.left, v.right - r.left, r.width];
+    let i = edges.findIndex((e, k) => k > 0 && x < e);
+    if (i < 1) i = edges.length - 1;
+    return { x: edges[i - 1], y: Math.floor((y - off) / 40) * 40 + off, w: edges[i] - edges[i - 1], h: 40 };
+  };
+
+  let pending = null;
+  plate.addEventListener('pointermove', e => {
+    const r = plate.getBoundingClientRect();
+    const p = [e.clientX - r.left, e.clientY - r.top];
+    if (pending) return void (pending = p);
+    pending = p;
+    requestAnimationFrame(() => {
+      const c = cell(pending[0], pending[1]);
+      pending = null;
+      spark.style.width = c.w + 'px';
+      spark.style.height = c.h + 'px';
+      spark.style.transform = 'translate(' + c.x + 'px,' + c.y + 'px)';
+      spark.classList.add('on');
+    });
+  });
+  plate.addEventListener('pointerleave', () => spark.classList.remove('on'));
+})();
 </script>
 </body>
 </html>
