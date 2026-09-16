@@ -781,13 +781,13 @@ $('mx-custom').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $
 /* Ids are the contract with the worker; labels stay Korean, like the filings they come from.
    These never enter `selected`: they have no formula and their rows come back from the run. */
 const OTHER_GROUPS = [
-  ['생산', [['capacity', '생산능력'], ['production', '생산실적'], ['utilization', '가동률']]],
-  ['시장', [['market_share', '시장점유율'], ['market_size', '시장규모']]],
-  ['사용자', [['mau', 'MAU'], ['dau', 'DAU'], ['arpu', 'ARPU'], ['paying_users', '유료 이용자'],
-    ['gmv', '거래액'], ['orders', '주문 수']]],
-  ['기타', [['asp', '판매단가'], ['backlog', '수주잔고'], ['new_orders', '신규 수주'],
-    ['export_ratio', '수출 비중'], ['headcount', '임직원 수'], ['rnd_ratio', 'R&D 비중'],
-    ['store_count', '점포 수'], ['subscribers', '가입자 수'], ['churn', '해지율'], ['take_rate', '수수료율']]]
+  ['Production', [['capacity', 'Capacity'], ['production', 'Output'], ['utilization', 'Utilization']]],
+  ['Market', [['market_share', 'Market share'], ['market_size', 'Market size']]],
+  ['Users', [['mau', 'MAU'], ['dau', 'DAU'], ['arpu', 'ARPU'], ['paying_users', 'Paying users'],
+    ['gmv', 'GMV'], ['orders', 'Orders']]],
+  ['Other', [['asp', 'Selling price (ASP)'], ['backlog', 'Order backlog'], ['new_orders', 'New orders'],
+    ['export_ratio', 'Export share'], ['headcount', 'Headcount'], ['rnd_ratio', 'R&D % of revenue'],
+    ['store_count', 'Store count'], ['subscribers', 'Subscribers'], ['churn', 'Churn rate'], ['take_rate', 'Take rate']]]
 ];
 const OTHER_BY_ID = new Map(OTHER_GROUPS.flatMap(([, list]) => list));
 let other = [], suggest = false;
