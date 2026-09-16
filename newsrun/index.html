@@ -75,7 +75,7 @@ button,a,summary,input { transition:opacity 120ms linear,background-color 120ms 
 .input { height:36px; min-height:36px; font-size:13px; width:100%; border-radius:2px;
   padding-inline:8px; background:var(--color-base-100); box-shadow:none;
   border-color:color-mix(in srgb,var(--color-base-content) 40%,var(--color-base-100)); }
-.input::placeholder { opacity:1; color:var(--dd-muted); }
+.input::placeholder { opacity:1; font-style:italic; color:color-mix(in srgb,var(--dd-muted) 55%,var(--color-base-100)); }
 input[type="date"].input { min-width:0; flex:1 1 0; font-variant-numeric:tabular-nums; }
 .checkbox { border-radius:2px; width:16px; height:16px; flex:none; }
 :is(button,a,summary,input):focus-visible { outline:2px solid var(--color-primary); outline-offset:2px; }
@@ -412,7 +412,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
               <div class="collapse-content dd-card-body">
               <form id="req-form" class="flex flex-col gap-2">
                 <label for="f-company">Target company</label>
-                <input id="f-company" type="text" class="input input-sm w-full" placeholder="Samsung Electronics" required>
+                <input id="f-company" type="text" class="input input-sm w-full" placeholder="Company Name" required>
                 <div class="join">
                   <button type="button" data-preset="1" class="btn btn-sm join-item">Last 24h</button>
                   <button type="button" data-preset="7" class="btn btn-sm join-item">Last 7 days</button>

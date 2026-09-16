@@ -76,7 +76,7 @@ button,a,summary,input,select { transition:opacity 120ms linear,background-color
   padding-inline:8px; background:var(--color-base-100); box-shadow:none;
   border-color:color-mix(in srgb,var(--color-base-content) 40%,var(--color-base-100)); }
 .select { font-family:inherit; }
-.input::placeholder { opacity:1; color:var(--dd-muted); }
+.input::placeholder { opacity:1; font-style:italic; color:color-mix(in srgb,var(--dd-muted) 55%,var(--color-base-100)); }
 input[type="number"].input { font-variant-numeric:tabular-nums; }
 input[type="number"] { appearance:textfield; -moz-appearance:textfield; }
 input[type="number"]::-webkit-outer-spin-button,
@@ -405,7 +405,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
               <div class="collapse-content dd-card-body">
               <form id="req-form" class="flex flex-col gap-2">
                 <label for="f-company">Target company</label>
-                <input id="f-company" type="text" class="input input-sm w-full" placeholder="SK하이닉스" maxlength="100" required>
+                <input id="f-company" type="text" class="input input-sm w-full" placeholder="Company Name" maxlength="100" required>
                 <label for="f-year-from">Fiscal years</label>
                 <div class="dd-field">
                   <input id="f-year-from" type="number" class="input input-sm" min="1990" max="2100" step="1" aria-label="First fiscal year" required>
