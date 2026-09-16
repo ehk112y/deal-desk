@@ -241,6 +241,56 @@ input[type="date"].input { min-width:0; flex:1 1 0; font-variant-numeric:tabular
 #report-host .collapse,#report-host .collapse-content,#report-host .collapse-title::after,
 #report-host details::details-content { transition:none; }
 
+/* Progress scene: Intern 01, in a hard hat, mines the ore face left → right.
+   x = progress × travel and the same progress clips the face away; loops are CSS only. */
+#rep-anim { display:none; }
+#rep-anim.is-running,#rep-anim.is-done { display:block; padding-block:8px; }
+#rep-anim svg { display:block; width:100%; max-width:640px; height:auto; }
+.ra-run,.ra-done { display:none; }
+.is-running .ra-run,.is-done .ra-done { display:inline; }
+.ra-dig { transform:translateX(calc(var(--p,0) * 300px)); transition:transform .6s ease; }
+.ra-eat { transform:translateX(calc(var(--p,0) * 300px)); transition:transform .6s ease; }
+.ra-ground { stroke:var(--dd-border); stroke-width:2; }
+.ra-shadow { fill:#51513D; opacity:.18; }
+.ra-tag { fill:#E3DC95; stroke:#1B2021; stroke-width:3; stroke-linejoin:round; }
+.ra-string { fill:none; stroke:#1B2021; stroke-width:2.5; stroke-linecap:round; }
+.ra-limb { fill:#98341B; }
+.ra-haft { fill:#51513D; }
+.ra-rock { fill:#BDBDB4; stroke:#51513D; stroke-width:3; stroke-linejoin:round; }
+.ra-ore { fill:#E3DC95; stroke:#51513D; stroke-width:2; }
+.ra-chip { fill:#51513D; stroke:#1B2021; stroke-width:1.5; }
+.ra-puff { fill:none; stroke:#98341B; stroke-width:3; stroke-linecap:round; }
+.ra-swing { transform-box:fill-box; transform-origin:50% 72.2%; }
+.ra-bob,.ra-pant { transform-box:fill-box; transform-origin:50% 100%; }
+.ra-chip,.ra-puff { transform-box:fill-box; transform-origin:50% 50%; }
+.ra-chip-a { --cx:-18px; --cy:-34px; }
+.ra-chip-b { --cx:12px; --cy:-42px; }
+.ra-chip-c { --cx:32px; --cy:-24px; }
+.ra-puff-a { --cx:26px; --cy:-13px; }
+.ra-puff-b { --cx:20px; --cy:-22px; animation-delay:.3s; }
+@media (prefers-reduced-motion:no-preference) {
+  .ra-swing { animation:ra-swing .9s infinite; }
+  .ra-bob { animation:ra-bob .9s infinite; }
+  .ra-chip { animation:ra-chip .9s linear infinite; }
+  .ra-pant { animation:ra-pant .62s ease-in-out infinite; }
+  .ra-puff { animation:ra-puff 1.24s ease-out infinite; }
+}
+@keyframes ra-swing {
+  0% { transform:rotate(-18deg); animation-timing-function:ease-in; }
+  38% { transform:rotate(118deg); animation-timing-function:ease-out; }
+  50% { transform:rotate(111deg); }
+  100% { transform:rotate(-18deg); }
+}
+@keyframes ra-bob { 0%,28% { transform:translateY(0); } 40% { transform:translateY(2.5px); } 70%,100% { transform:translateY(0); } }
+@keyframes ra-chip {
+  0%,36% { opacity:0; transform:none; }
+  38% { opacity:1; transform:none; }
+  55% { opacity:1; }
+  60%,100% { opacity:0; transform:translate(var(--cx),var(--cy)) rotate(170deg); }
+}
+@keyframes ra-pant { 0%,100% { transform:scaleY(1); } 50% { transform:scaleY(1.045) translateY(-1px); } }
+@keyframes ra-puff { 0% { opacity:0; transform:none; } 18% { opacity:1; } 100% { opacity:0; transform:translate(var(--cx),var(--cy)) scale(1.5); } }
+
 @container (min-width:800px) {
   .dd-cols { grid-template-columns:360px minmax(0,1fr); }
   .dd-cols:has(> .dd-controls.collapsed) { grid-template-columns:40px minmax(0,1fr); }
@@ -406,7 +456,103 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
                   <button id="copy-en" class="btn btn-sm dd-copy hidden">Copy English</button>
                 </div>
               </div>
-              <div id="report-empty" class="dd-muted">Select a completed run from My requests to review its news.</div>
+              <div id="report-empty" class="dd-muted">Select a run from My requests to follow it or review its news.</div>
+              <!-- Progress scene. paintAnim() only toggles the classes, sets --p and the tag text. -->
+              <div id="rep-anim" role="img" aria-label="Progress">
+                <svg viewBox="0 4 640 106">
+                  <defs>
+                    <g id="rp-body">
+                      <rect x="23" y="26" width="54" height="52" rx="12" fill="#E8927C" stroke="#98341B" stroke-width="3"/>
+                      <rect x="30" y="33" width="40" height="5" rx="1" fill="#98341B"/>
+                      <rect x="30" y="41" width="24" height="3" rx="1.5" fill="#EBC9C0"/>
+                      <circle cx="40" cy="55" r="5" fill="#98341B"/>
+                      <circle cx="60" cy="55" r="5" fill="#98341B"/>
+                    </g>
+                    <g id="rp-hat">
+                      <path d="M26 41 A24 24 0 0 1 74 41 Z" fill="#E3DC95" stroke="#98341B" stroke-width="3" stroke-linejoin="round"/>
+                      <path d="M50 18 V41" stroke="#98341B" stroke-width="2.5" fill="none"/>
+                      <rect x="12" y="38" width="76" height="9" rx="4.5" fill="#E3DC95" stroke="#98341B" stroke-width="3"/>
+                      <circle cx="50" cy="30" r="6.5" fill="#FFF7D6" stroke="#98341B" stroke-width="3"/>
+                    </g>
+                    <path id="rp-pick" d="M-28 3 C-18 -8 -6 -11 0 -11 C6 -11 18 -8 28 3 C18 -2 6 -4 0 -4 C-6 -4 -18 -2 -28 3 Z"
+                          fill="#8E8E82" stroke="#1B2021" stroke-width="3" stroke-linejoin="round"/>
+                    <clipPath id="rp-eat"><rect class="ra-eat" x="200" y="0" width="760" height="130"/></clipPath>
+                  </defs>
+
+                  <line class="ra-ground" x1="0" y1="107" x2="640" y2="107"/>
+
+                  <g class="ra-run">
+                    <g clip-path="url(#rp-eat)">
+                      <path class="ra-rock" d="M200 107 L214 70 L232 88 L252 58 L272 82 L296 48 L318 78 L342 56 L364 86 L388 52 L412 80 L438 46 L462 76 L488 54 L512 84 L538 50 L564 78 L590 58 L614 82 L640 62 L640 107 Z"/>
+                      <circle class="ra-ore" cx="240" cy="96" r="3.5"/><circle class="ra-ore" cx="282" cy="92" r="3"/>
+                      <circle class="ra-ore" cx="300" cy="68" r="3"/><circle class="ra-ore" cx="330" cy="90" r="3.5"/>
+                      <circle class="ra-ore" cx="372" cy="98" r="3"/><circle class="ra-ore" cx="400" cy="72" r="3"/>
+                      <circle class="ra-ore" cx="420" cy="94" r="3.5"/><circle class="ra-ore" cx="470" cy="92" r="3"/>
+                      <circle class="ra-ore" cx="500" cy="74" r="3"/><circle class="ra-ore" cx="520" cy="96" r="3.5"/>
+                      <circle class="ra-ore" cx="560" cy="86" r="3"/><circle class="ra-ore" cx="606" cy="96" r="3.5"/>
+                    </g>
+                    <g class="ra-dig">
+                      <ellipse class="ra-shadow" cx="140" cy="107" rx="48" ry="3.5"/>
+                      <g transform="rotate(-8 34 76)">
+                        <path class="ra-tag" d="M10 57 H44 L58 76 L44 95 H10 Z"/>
+                        <circle cx="50" cy="76" r="2.6" fill="none" stroke="#1B2021" stroke-width="2.5"/>
+                        <text class="ra-pct" x="27" y="82" text-anchor="middle" font-family="IBM Plex Sans,sans-serif"
+                              font-weight="600" font-size="15" fill="#1B2021">0%</text>
+                      </g>
+                      <path class="ra-string" d="M58 74 Q80 90 104 86"/>
+                      <g transform="translate(90,18)">
+                        <rect class="ra-limb" x="30" y="72" width="11" height="17" rx="5.5"/>
+                        <rect class="ra-limb" x="58" y="74" width="11" height="14" rx="5.5"/>
+                        <g class="ra-bob">
+                          <rect class="ra-limb" x="16" y="46" width="10" height="23" rx="5" transform="rotate(12 21 48)"/>
+                          <use href="#rp-body"/>
+                          <path d="M27 64 H73" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+                          <path d="M36 70 V74 M50 70 V74 M64 70 V74" stroke="#EBC9C0" stroke-width="3" stroke-linecap="round" fill="none"/>
+                          <use href="#rp-hat"/>
+                          <g transform="translate(79,48)"><g class="ra-swing">
+                            <rect class="ra-limb" x="-5" y="-4" width="10" height="26" rx="5"/>
+                            <rect class="ra-haft" x="-3.5" y="-46" width="7" height="68" rx="3.5"/>
+                            <use href="#rp-pick" y="-46"/>
+                          </g></g>
+                          <g transform="translate(128,52)">
+                            <path class="ra-chip ra-chip-a" d="M-6 -3 L3 -7 L6 3 Z"/>
+                            <path class="ra-chip ra-chip-b" d="M-4 3 L4 0 L1 8 Z"/>
+                            <path class="ra-chip ra-chip-c" d="M-8 7 L0 4 L-3 12 Z"/>
+                          </g>
+                        </g>
+                      </g>
+                    </g>
+                  </g>
+
+                  <g class="ra-done">
+                    <path class="ra-rock" d="M60 107 Q82 92 106 96 Q122 84 148 92 Q170 80 194 94 Q216 86 240 96 Q260 90 282 107 Z"/>
+                    <circle class="ra-ore" cx="110" cy="102" r="3.5"/><circle class="ra-ore" cx="158" cy="99" r="3"/>
+                    <circle class="ra-ore" cx="206" cy="101" r="3.5"/><circle class="ra-ore" cx="250" cy="103" r="3"/>
+                    <g transform="rotate(-5 360 101)">
+                      <rect class="ra-haft" x="324" y="97" width="92" height="8" rx="4"/>
+                      <use href="#rp-pick" x="326" y="100"/>
+                    </g>
+                    <ellipse class="ra-shadow" cx="506" cy="107" rx="72" ry="3.5"/>
+                    <g transform="translate(432,30)">
+                      <rect class="ra-limb" x="62" y="64" width="56" height="13" rx="6.5"/>
+                      <rect class="ra-limb" x="124" y="56" width="12" height="21" rx="6"/>
+                      <g transform="rotate(-10 40 78)">
+                        <rect class="ra-limb" x="10" y="48" width="10" height="32" rx="5" transform="rotate(24 15 50)"/>
+                        <g class="ra-pant">
+                          <use href="#rp-body"/>
+                          <ellipse cx="50" cy="69" rx="11" ry="7.5" fill="#98341B"/>
+                          <g transform="translate(-3,-2) rotate(-14 50 42)"><use href="#rp-hat"/></g>
+                        </g>
+                        <rect class="ra-limb" x="74" y="52" width="10" height="26" rx="5" transform="rotate(-12 79 54)"/>
+                      </g>
+                      <g transform="translate(84,56)">
+                        <path class="ra-puff ra-puff-a" d="M0 0 q6 -3 11 0"/>
+                        <path class="ra-puff ra-puff-b" d="M2 -9 q5 -3 9 0"/>
+                      </g>
+                    </g>
+                  </g>
+                </svg>
+              </div>
               <div id="report-stats" class="dd-muted"></div>
               <div id="report-pinned" class="dd-muted"></div>
               <div id="promote-note" class="hidden flex items-center gap-2">
@@ -800,7 +946,7 @@ function renderRequests() {
           e.textContent = r.error;
           row.append(e);
         }
-        if (r.status === 'done') row.onclick = () => openReport(r);
+        if (r.status !== 'error') row.onclick = () => openReport(r);
         thread.append(row);
       });
       wrap.append(thread, followUpForm(name, list[0]));
@@ -808,6 +954,9 @@ function renderRequests() {
     host.append(wrap);
   });
   if (focused && host.contains(focused)) focused.focus({ preventScroll: true });
+  // Realtime: repaint the open panel when its progress/status moves (no report loaded yet).
+  const open = reqs.find(r => r.id === openId);
+  if (open && !lastReport) openReport(open);
 }
 
 /* Follow-up request for one company thread. Markup below is static (company name never goes into HTML). */
@@ -855,10 +1004,30 @@ function followUpForm(company, latest) {
   return f;
 }
 
-async function openReport(req) {
-  if (demo) return toast('The sample report is already displayed');
+/* pending = the running scene at 0%; error = no scene at all (the row carries the message). */
+function paintAnim(r) {
+  const a = $('rep-anim'), st = r && r.status;
+  const pct = st === 'done' ? 100 : Math.max(0, Math.min(100, r?.progress ?? 0));
+  a.classList.toggle('is-running', st === 'pending' || st === 'running');
+  a.classList.toggle('is-done', st === 'done');
+  a.style.setProperty('--p', pct / 100);
+  a.querySelector('.ra-pct').textContent = pct + '%';
+  a.setAttribute('aria-label', st === 'done' ? 'Done' : 'Running, ' + pct + '%');
+}
 
+async function openReport(req) {
   clearReport();
+  openId = req.id;
+  paintAnim(req);
+
+  if (req.status !== 'done') {      // in progress: head line + scene, no sections
+    $('report-empty').classList.add('hidden');
+    $('report-stats').textContent =
+      [oneCompany(req.companies), `${dot(req.date_from)} ~ ${dot(req.date_to)}`, req.status].join(' · ');
+    return;
+  }
+  if (demo) return renderReport(demoSample.content, demoSample.stats, req);
+
   const version = ++reportVersion;
   for (const id of ['copy-ko', 'copy-en']) $(id).disabled = true;
   $('report-host').setAttribute('aria-busy', 'true');
@@ -899,10 +1068,14 @@ const link = (url, style, text) => {
 };
 
 let lastReport = null;
+let openId = null;      // request whose panel is on screen (done or in progress)
+let demoSample = null;  // demo=1 sample report, replayed when the done row is clicked
 
 function clearReport() {
   ++reportVersion;
   lastReport = null;
+  openId = null;
+  paintAnim(null);
   $('report-host').replaceChildren();
   $('report-host').removeAttribute('aria-busy');
   $('report-stats').textContent = '';
@@ -1219,13 +1392,13 @@ if (demo) {
   $('nav-email').textContent = 'demo@newsrun';
   show('scr-main');
   reqs = [
-    { id: 'd1', companies: ['삼성전자'], date_from: '2026-09-07', date_to: '2026-09-14', status: 'done', exclude_seen: true, must_include: ['Hostile M&A attempt'], created_at: '2026-09-14T09:00:00Z' },
+    { id: 'd1', companies: ['삼성전자'], date_from: '2026-09-07', date_to: '2026-09-14', status: 'done', progress: 100, exclude_seen: true, must_include: ['Hostile M&A attempt'], created_at: '2026-09-14T09:00:00Z' },
     { id: 'd2', companies: ['삼성전자'], date_from: '2026-08-31', date_to: '2026-09-06', status: 'error', error: 'collector timeout', exclude_seen: true, created_at: '2026-09-07T09:00:00Z' },
-    { id: 'd3', companies: ['현대차'], date_from: '2026-09-13', date_to: '2026-09-14', status: 'running', exclude_seen: false, created_at: '2026-09-14T08:00:00Z' }
+    { id: 'd3', companies: ['현대차'], date_from: '2026-09-13', date_to: '2026-09-14', status: 'running', progress: 57, exclude_seen: false, created_at: '2026-09-14T08:00:00Z' }
   ];
   openCompany = '삼성전자';
   renderRequests();
-  renderReport([
+  demoSample = { stats: { total: 184, selected: 2 }, content: [
     { company: '삼성전자', company_en: 'Samsung Electronics', items: [
       { title_ko: '삼성전자, 파운드리 분사 검토', title_en: 'Samsung weighs foundry spin-off',
         press: '한국경제', press_en: 'Korea Economic Daily', date: '2026.09.12', link: 'https://example.com/1', supplementary: false,
@@ -1245,7 +1418,8 @@ if (demo) {
         bullets_ko: [{ text: '수주 잔고 KRW60tn, 전년 대비 +18%' }],
         bullets_en: [{ text: 'Backlog of KRW60tn, +18% YoY' }] }
     ], excluded: [{ title: '삼성전자 임직원 헌혈 캠페인', reason: '사내행사' }] }
-  ], { total: 184, selected: 2 }, reqs.find(r => r.id === 'd1'));
+  ] };
+  openReport(reqs.find(r => r.id === 'd1'));
 }
 </script>
 </body>

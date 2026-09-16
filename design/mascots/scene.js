@@ -7,19 +7,26 @@ const chrome = ['C:/Program Files/Google/Chrome/Application/chrome.exe',
 const I1 = { body: '#E8927C', ink: '#98341B', tint: '#EBC9C0' };
 const I2 = { body: '#9DBF9E', ink: '#256F27', tint: '#CBD9CB' };
 
-/* ---- shared furniture: thin-line desk, sand dune at 55% ---- */
-const desk = (x, prop) => `<g stroke="#E3DC95" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round" fill="none">
+/* ---- shared furniture: thin-line desk, stool, monitor rig, sand dune at 55% ---- */
+// one rig per desk: a monitor centred behind the intern (the body occludes the middle, the
+// top edge and both sides peek out), its white screen light spilling round it, and the PC
+// tower parked on the floor past the desk's right leg
+const rig = x => `<g class="dd-glow" fill="#F7F5EE" stroke="none" opacity="0.4" filter="url(#dd-glow)">
+      <rect x="${x - 30}" y="27" width="60" height="43" rx="6"/>
+      <ellipse cx="${x}" cy="92" rx="32" ry="5"/>
+    </g>
+    <rect x="${x - 30}" y="27" width="60" height="43" rx="3"/>
+    <path d="M${x} 70 V92 M${x - 10} 92 H${x + 10}"/>
+    <rect x="${x + 80}" y="86" width="18" height="28" rx="2"/>
+    <circle cx="${x + 85}" cy="91" r="2" fill="#F7F5EE" stroke="none" opacity="0.9"/>`;
+
+const desk = x => `<g stroke="#E3DC95" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round" fill="none">
     <path d="M${x - 74} 92 H${x + 74}"/>
     <path d="M${x - 66} 92 V114 M${x + 66} 92 V114"/>
-    ${prop(x)}
+    <rect x="${x - 18}" y="88" width="36" height="5" rx="2.5"/>
+    <path d="M${x - 12} 93 V114 M${x + 12} 93 V114 M${x - 12} 105 H${x + 12}"/>
+    ${rig(x)}
   </g>`;
-
-// intern 01 prop: a stack of clippings
-const stack = x => `<rect x="${x + 32}" y="80" width="34" height="9" rx="2"/>
-    <rect x="${x + 36}" y="73" width="26" height="7" rx="2"/>`;
-// intern 02 prop: a monitor seen from behind
-const monitor = x => `<rect x="${x + 30}" y="60" width="38" height="26" rx="3"/>
-    <path d="M${x + 49} 86 V91 M${x + 40} 92 H${x + 58}"/>`;
 
 /* ---- character parts, all sitting at the desk seen from behind ---- */
 const armL = (x, c, a) => `<rect x="${x - 34}" y="50" width="10" height="42" rx="5" fill="${c.ink}" transform="rotate(${a} ${x - 29} 56)"/>`;
@@ -84,8 +91,9 @@ const i2Turn = x => `<g class="turn" visibility="hidden">
 
 const X1 = 120, X2 = 360;
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120" width="480" height="120" role="img" aria-label="Interns at their desks">
-  ${desk(X1, stack)}
-  ${desk(X2, monitor)}
+  <defs><filter id="dd-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter></defs>
+  ${desk(X1)}
+  ${desk(X2)}
   <g class="i1">
     ${i1Back(X1)}
     ${i1Turn(X1)}
@@ -99,7 +107,11 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120" width
 fs.writeFileSync(p.join(DIR, 'desk-scene.svg'), svg);
 
 const proof = `<!doctype html><html><head><meta charset="utf-8"><style>
-body{margin:0;background:${K}} .f{width:480px;padding:0}</style></head>
+body{margin:0;background:${K}} .f{width:480px;padding:0}
+@media (prefers-reduced-motion:no-preference){
+  @keyframes dd-breathe{0%,100%{opacity:.3}50%{opacity:.5}}
+  .dd-glow{animation:dd-breathe 3s ease-in-out infinite}
+}</style></head>
 <body><div class="f">${svg}</div></body></html>`;
 fs.writeFileSync(p.join(DIR, 'desk-scene-proof.html'), proof);
 
