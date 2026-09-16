@@ -1,0 +1,1049 @@
+<!doctype html>
+<html lang="en" data-theme="deal">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revenue Breakdown (DART)</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%20width%3D%2232%22%20height%3D%2232%22%20role%3D%22img%22%20aria-label%3D%22Intern%2003%22%3E%20%3Cg%20transform%3D%22rotate(14%2027%207)%22%3E%20%3Crect%20x%3D%2224.25%22%20y%3D%221.25%22%20width%3D%225.5%22%20height%3D%2211%22%20rx%3D%221.5%22%20fill%3D%22%238FB8DE%22%20stroke%3D%22%23295B8A%22%20stroke-width%3D%222.5%22%2F%3E%20%3Crect%20x%3D%2224.25%22%20y%3D%228%22%20width%3D%225.5%22%20height%3D%224.25%22%20fill%3D%22%23295B8A%22%2F%3E%20%3C%2Fg%3E%20%3Crect%20x%3D%222.25%22%20y%3D%2210.25%22%20width%3D%2227.5%22%20height%3D%2223%22%20rx%3D%226%22%20fill%3D%22%238FB8DE%22%20stroke%3D%22%23295B8A%22%20stroke-width%3D%222.5%22%2F%3E%20%3Ccircle%20cx%3D%2216%22%20cy%3D%2227%22%20r%3D%226%22%20fill%3D%22%23CBDBE9%22%2F%3E%20%3Cpath%20d%3D%22M16%2027%20L16%2021%20A6%206%200%200%201%2022%2027%20Z%22%20fill%3D%22%23295B8A%22%2F%3E%20%3Ccircle%20cx%3D%2211%22%20cy%3D%2219%22%20r%3D%223.2%22%20fill%3D%22%23295B8A%22%2F%3E%20%3Ccircle%20cx%3D%2221%22%20cy%3D%2219%22%20r%3D%223.2%22%20fill%3D%22%23295B8A%22%2F%3E%20%3C%2Fsvg%3E">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5.7.37" rel="stylesheet" type="text/css">
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0"></script>
+<style>
+/* Bankers’ Toolkit shell, copied from the Newsrun Tracker page so both modules read as one suite. */
+[data-theme="deal"] {
+  color-scheme:light;
+  --color-base-100:#FFFFFF;
+  --color-base-200:color-mix(in srgb,#E3DCC2 22%,#FFFFFF);
+  --color-base-300:#E3DCC2; --color-base-content:#1B2021;
+  --color-primary:#51513D; --color-primary-content:#FFFFFF;
+  --color-secondary:#A6A867; --color-secondary-content:#1B2021;
+  --color-accent:#E3DC95; --color-accent-content:#1B2021;
+  --color-neutral:#1B2021; --color-neutral-content:#E3DCC2;
+  --color-info:#51513D; --color-info-content:#FFFFFF;
+  --color-success:#A6A867; --color-success-content:#1B2021;
+  --color-warning:#E3DC95; --color-warning-content:#1B2021;
+  --color-error:#51513D; --color-error-content:#FFFFFF;
+  --dd-border:#E3DCC2; --dd-muted:#51513D;
+  --dd-work:color-mix(in srgb,#E3DCC2 36%,#FFFFFF);
+  --dd-selected:#51513D; --dd-selected-ink:#FFFFFF;
+  --dd-hover:color-mix(in srgb,#E3DCC2 55%,#FFFFFF);
+  --radius-box:4px; --radius-field:2px; --radius-selector:2px;
+  --size-field:.25rem; --size-selector:.25rem;
+  --border:1px; --depth:0; --noise:0;
+}
+[data-theme="deal-dark"] {
+  color-scheme:dark;
+  --color-base-100:#1B2021;
+  --color-base-200:color-mix(in srgb,#1B2021 96%,#E3DCC2);
+  --color-base-300:#51513D; --color-base-content:#E3DCC2;
+  --color-primary:#A6A867; --color-primary-content:#1B2021;
+  --color-secondary:#51513D; --color-secondary-content:#E3DCC2;
+  --color-accent:#E3DC95; --color-accent-content:#1B2021;
+  --color-neutral:#1B2021; --color-neutral-content:#E3DCC2;
+  --color-info:#A6A867; --color-info-content:#1B2021;
+  --color-success:#A6A867; --color-success-content:#1B2021;
+  --color-warning:#E3DC95; --color-warning-content:#1B2021;
+  --color-error:#E3DC95; --color-error-content:#1B2021;
+  --dd-border:#51513D;
+  --dd-muted:color-mix(in srgb,#E3DCC2 82%,#1B2021);
+  --dd-work:color-mix(in srgb,#1B2021 92%,#E3DCC2);
+  --dd-selected:#A6A867; --dd-selected-ink:#1B2021;
+  --dd-hover:color-mix(in srgb,#51513D 45%,#1B2021);
+  --radius-box:4px; --radius-field:2px; --radius-selector:2px;
+  --size-field:.25rem; --size-selector:.25rem;
+  --border:1px; --depth:0; --noise:0;
+}
+
+body {
+  margin:0; font-family:"IBM Plex Sans","Noto Sans KR",sans-serif;
+  font-size:13px; line-height:1.45; font-variant-numeric:tabular-nums;
+  color:var(--color-base-content);
+}
+label,.dd-label { font-weight:500; }
+.dd-title { font-size:15px; font-weight:600; line-height:24px; letter-spacing:-.015em; }
+.dd-page-title { font-size:20px; font-weight:600; line-height:24px; letter-spacing:-.025em; }
+.dd-muted { opacity:1; color:var(--dd-muted); }
+.dd-meta { font-size:13px; }
+button,a,summary,input,select { transition:opacity 120ms linear,background-color 120ms linear; }
+.btn { font-family:inherit; font-size:13px; font-weight:500; border-radius:2px;
+  box-shadow:none; text-transform:none; height:36px; min-height:36px; padding-inline:12px;
+  transition:opacity 120ms linear,background-color 120ms linear; }
+.btn:active:not(:disabled) { transform:none; translate:none; scale:1; }
+.btn-primary { font-weight:600; }
+.input,.select { height:36px; min-height:36px; font-size:13px; width:100%; border-radius:2px;
+  padding-inline:8px; background:var(--color-base-100); box-shadow:none;
+  border-color:color-mix(in srgb,var(--color-base-content) 40%,var(--color-base-100)); }
+.select { font-family:inherit; }
+.input::placeholder { opacity:1; font-style:italic; color:color-mix(in srgb,var(--dd-muted) 55%,var(--color-base-100)); }
+input[type="number"].input { font-variant-numeric:tabular-nums; }
+input[type="number"] { appearance:textfield; -moz-appearance:textfield; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+.checkbox { border-radius:2px; width:16px; height:16px; flex:none; }
+:is(button,a,summary,input,select):focus-visible { outline:2px solid var(--color-primary); outline-offset:2px; }
+.btn:disabled,.input:disabled,.select:disabled { opacity:.5; }
+
+/* Fixed shell. Its navigation reads as a tool selector, with a narrow active rail. */
+.dd-shell { display:flex; min-height:100vh; align-items:stretch; }
+.dd-sidebar { width:220px; flex:0 0 220px; box-sizing:border-box;
+  background:#1B2021; color:#E3DCC2; border-right:1px solid #51513D; }
+.dd-sidebar-inner { position:sticky; top:0; height:100vh; box-sizing:border-box;
+  display:flex; flex-direction:column; gap:8px; padding:8px; }
+.dd-sidebar.collapsed { width:56px; flex:0 0 56px; }
+.dd-brand { display:flex; align-items:center; height:40px; padding:0 8px; margin-bottom:8px;
+  font-weight:600; font-size:15px; letter-spacing:-.015em; white-space:nowrap; overflow:hidden; }
+.dd-brand-mini { display:none; }
+.dd-sidebar.collapsed .dd-label,.dd-sidebar.collapsed .dd-brand-text { display:none; }
+.dd-sidebar.collapsed .dd-brand { justify-content:center; padding:0; }
+.dd-sidebar.collapsed .dd-brand-mini { display:block; font-size:13px; }
+.dd-mod { display:flex; align-items:center; gap:8px; height:36px; padding:0 8px; width:100%;
+  box-sizing:border-box; font-size:13px; font-weight:400; text-align:left; white-space:nowrap;
+  overflow:hidden; text-decoration:none;
+  border-radius:2px; border-left:2px solid transparent; background:transparent; color:inherit; cursor:pointer; }
+.dd-sidebar.collapsed .dd-mod { justify-content:center; padding:0; }
+.dd-mod:hover { background:#51513D; }
+.dd-mod.dd-active { background:#51513D; border-left-color:#E3DC95; color:#FFFFFF; font-weight:600; cursor:default; }
+.dd-mod svg { flex:none; }
+.dd-sidebar :is(button,a):focus-visible { outline-color:#E3DC95; }
+#sb-toggle { margin-top:auto; border-top:1px solid #51513D; border-radius:0; height:40px; }
+.dd-main { flex:1 1 auto; min-width:0; display:flex; flex-direction:column; container-type:inline-size; }
+.dd-mascot { flex:none; }
+.dd-topbar { position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:8px;
+  height:56px; padding:0 24px; background:var(--color-base-100); border-bottom:1px solid var(--dd-border); }
+#theme-btn { border-left:1px solid var(--dd-border); border-radius:0; margin-left:8px; }
+.dd-content { max-width:1400px; width:100%; margin:0 auto; padding:24px; box-sizing:border-box; }
+.dd-cols { display:grid; gap:24px; grid-template-columns:minmax(0,1fr); align-items:start; }
+.dd-row { min-height:36px; display:flex; align-items:center; }
+
+/* A single input work surface: the request form and the register share one tinted column. */
+.dd-card { background:var(--color-base-100); border:1px solid var(--dd-border); border-radius:4px; box-shadow:none; }
+.dd-card-body { display:flex; flex-direction:column; gap:8px; padding:16px; }
+.dd-controls { background:var(--dd-work); border-radius:4px; gap:0; }
+.dd-controls .dd-card { background:transparent; border:0; border-radius:0; }
+.dd-controls .dd-card-body { gap:16px; }
+.dd-controls .dd-register { border-top:1px solid var(--dd-border); }
+#ctl-panel { gap:0; }
+.dd-ctl-toggle { display:flex; align-items:center; gap:8px; height:36px; padding:0 8px; width:100%;
+  font-size:13px; color:var(--dd-muted); background:transparent; border:0; border-radius:2px;
+  cursor:pointer; white-space:nowrap; overflow:hidden; }
+.dd-ctl-toggle:hover { background:var(--dd-hover); }
+.dd-ctl-toggle svg { flex:none; }
+.dd-controls.collapsed #ctl-panel { display:none; }
+.dd-controls.collapsed .dd-ctl-toggle .dd-label { display:none; }
+.dd-controls.collapsed .dd-ctl-toggle svg { transform:rotate(180deg); }
+.dd-fold { display:block; background:transparent; border-radius:0; overflow:visible; }
+.dd-fold > .collapse-title { min-height:40px; padding:8px 32px 8px 16px;
+  font-size:15px; line-height:24px; font-weight:600; cursor:pointer; }
+.dd-fold > .collapse-title:hover { background:var(--dd-hover); }
+.dd-fold > .collapse-content { padding:0 16px 16px; }
+.dd-fold:not([open]) > .collapse-content { display:none; }
+.dd-fold,.dd-fold .collapse-content,.dd-fold .collapse-title::after,
+.dd-fold::details-content { transition:none; }
+#req-form { gap:8px; }
+#req-form > label { color:var(--dd-muted); }
+#req-form > .btn-primary { margin-top:8px; }
+.dd-field { display:flex; align-items:center; gap:8px; }
+.dd-field .input,.dd-field .select { width:auto; flex:1 1 0; min-width:0; }
+.dd-field .btn { flex:none; }
+#f-year-from,#f-year-to,#f-ltm-year { max-width:96px; }
+.alert { border-radius:2px; box-shadow:none; font-size:13px; }
+
+/* Breakdown picker: the same 36px catalog row the register uses. */
+.dd-mrow { display:flex; align-items:center; gap:8px; height:36px; padding:0 4px;
+  border-bottom:1px solid var(--dd-border); }
+.dd-mrow:hover { background:var(--dd-hover); }
+.dd-mrow > label { flex:1 1 auto; min-width:0; display:flex; align-items:center; gap:8px;
+  height:36px; font-weight:400; cursor:pointer; }
+.dd-mname { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dd-mact { flex:none; display:flex; }
+.dd-mact .btn { width:28px; height:28px; min-height:28px; padding:0; font-size:12px; line-height:1;
+  border:0; border-radius:2px; background:transparent; color:var(--dd-muted); }
+.dd-mact .btn:hover:not(:disabled) { background:var(--dd-hover); color:var(--color-base-content); }
+.dd-mgroup { padding:16px 4px 4px; font-weight:600; color:var(--dd-muted);
+  border-bottom:1px solid var(--dd-border); }
+
+/* Register: one request per row, status on the same line, pin and delete at the right edge. */
+.dd-ritem { display:flex; align-items:center; padding-right:4px;
+  border-bottom:1px solid var(--dd-border); }
+#req-list > .dd-ritem:first-child { border-top:1px solid var(--dd-border); }
+.dd-ritem:hover { background:var(--dd-hover); }
+.dd-ritem:has([aria-current="true"]) { background:var(--dd-selected); color:var(--dd-selected-ink); }
+.dd-ritem:has([aria-current="true"]) :is(.dd-muted,.dd-mact .btn) { color:var(--dd-selected-ink); }
+.dd-ropen { flex:1 1 auto; min-width:0; background:transparent; padding:8px; border-radius:0;
+  text-align:left; font-size:13px; min-height:36px; }
+.dd-ritem:has([aria-current="true"]) .dd-mact .btn:hover { color:var(--color-base-content); }
+.badge { font-size:13px; text-transform:capitalize; letter-spacing:0; font-weight:500; height:20px; min-height:20px; }
+.dd-b-done,.dd-b-wait,.dd-b-err,.dd-b-mute { border:0; border-radius:0; padding:0; background:transparent; color:inherit; }
+.dd-b-done::before,.dd-b-wait::before { content:""; width:4px; height:4px; background:var(--color-primary); flex:none; }
+.dd-b-wait::before { background:var(--color-warning); outline:1px solid var(--dd-muted); }
+.dd-b-err { text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--color-error); }
+
+/* The breakdown sheet: unit in its corner, one band per kind of split. */
+.dd-results { container-type:inline-size; }
+.dd-report { border:0; background:transparent; border-radius:0; }
+.dd-report > .dd-card-body { padding:0; gap:16px; }
+.dd-report-toolbar { min-height:40px; gap:8px; margin-top:8px; }
+.dd-copy { background:var(--color-primary); border-color:var(--color-primary); color:var(--color-primary-content); font-weight:600; }
+.dd-copy:hover { opacity:.88; }
+#res-meta:not(:empty) { font-size:13px; line-height:24px; padding-block:8px;
+  border-top:1px solid var(--dd-border); border-bottom:1px solid var(--dd-border); }
+#res-meta:empty,#res-flags:empty { display:none; }
+#res-hint:not(.hidden) { padding-block:8px; border-top:1px solid var(--dd-border); }
+#res-status:not(.hidden) { display:flex; align-items:flex-start; padding:16px 0; }
+/* contain:paint keeps a wide table's overflow inside this scroller instead of scrolling the page. */
+.dd-sheet { overflow-x:auto; contain:paint; }
+table.dd-sum { border-collapse:collapse; width:100%; font-size:13px; font-variant-numeric:tabular-nums; }
+.dd-sum th,.dd-sum td { padding:0 8px; height:28px; white-space:nowrap; text-align:right; }
+.dd-sum thead th { background:var(--dd-work); font-weight:600; border-bottom:1px solid var(--dd-border); }
+.dd-sum td { border-bottom:1px solid var(--dd-border); }
+.dd-sum :is(th,td):first-child { text-align:left; font-weight:500; }
+.dd-sum tbody th { font-weight:500; background:transparent; border-bottom:1px solid var(--dd-border); }
+.dd-sum tr.dd-ratio :is(th,td) { color:var(--dd-muted); font-style:italic; }
+.dd-sum tr.dd-ohead th { font-weight:600; color:var(--dd-muted); background:var(--dd-work);
+  border-top:1px solid var(--dd-border); text-align:left; }
+/* share of revenue rides next to each period, never instead of it */
+.dd-sum :is(th,td).dd-pct-col { color:var(--dd-muted); font-style:italic; }
+.dd-unit-cell { padding:0 4px !important; }
+.dd-unit-cell .select { height:24px; min-height:24px; width:auto; font-size:12px; font-weight:600;
+  border:0; background-color:transparent; padding-inline:4px 20px; color:inherit; }
+.dd-flag { padding:4px 0; border-bottom:1px solid var(--dd-border); font-size:9.5px; line-height:1.5; }
+.dd-flag.is-def { color:var(--dd-muted); }
+.dd-flag.is-note { color:var(--color-base-content); font-weight:700; }
+.dd-flag:first-child { border-top:1px solid var(--dd-border); }
+
+/* Progress scene: Intern 03 drives a chisel along a solid revenue bar; everything behind
+   the chisel has already come apart into parts. seam x = progress × travel; the loops are
+   CSS only and stop under prefers-reduced-motion. */
+#res-anim { display:none; }
+#res-anim.is-running,#res-anim.is-done { display:block; padding-block:8px; }
+#res-anim svg { display:block; width:100%; max-width:640px; height:auto; }
+.ra-run,.ra-done { display:none; }
+.is-running .ra-run,.is-done .ra-done { display:inline; }
+.ra-walk { transform:translateX(calc(var(--p,0) * 400px)); transition:transform .6s ease; }
+/* the split only reaches as far as the chisel has walked: the clip grows from the bar's left edge */
+.ra-cut { transform-box:view-box; transform-origin:100px 0; transform:scaleX(var(--p,0));
+  transition:transform .6s ease; }
+.ra-ground { stroke:var(--dd-border); stroke-width:2; }
+.ra-shadow { fill:#51513D; opacity:.18; }
+.ra-tag { fill:#E3DC95; stroke:#1B2021; stroke-width:3; stroke-linejoin:round; }
+.ra-string { fill:none; stroke:#1B2021; stroke-width:2.5; stroke-linecap:round; }
+.ra-whole { fill:#BDBDB4; stroke:#51513D; stroke-width:3; }
+.ra-part { stroke:#295B8A; stroke-width:3; }
+.ra-limb { fill:#295B8A; }
+.ra-drop { fill:#8FB8DE; stroke:#295B8A; stroke-width:2.5; }
+.ra-leg,.ra-bob,.ra-drop,.ra-chisel { transform-box:fill-box; transform-origin:50% 0; }
+.ra-wipe { transform-box:fill-box; transform-origin:100% 50%; }
+@media (prefers-reduced-motion:no-preference) {
+  .ra-bob { animation:ra-bob 1s ease-in-out infinite; }
+  .ra-leg-a { animation:ra-step 1s ease-in-out infinite; }
+  .ra-leg-b { animation:ra-step 1s ease-in-out infinite reverse; }
+  .ra-chisel { animation:ra-tap 1s ease-in-out infinite; }
+  .ra-wipe { animation:ra-wipe 1.4s ease-in-out infinite; }
+  .ra-drop { animation:ra-drop 1.4s ease-in-out infinite; }
+}
+@keyframes ra-bob { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-2.5px); } }
+@keyframes ra-step { 0%,100% { transform:rotate(16deg); } 50% { transform:rotate(-16deg); } }
+@keyframes ra-tap { 0%,100% { transform:translateY(0); } 50% { transform:translateY(3.5px); } }
+@keyframes ra-wipe { 0%,100% { transform:rotate(-7deg); } 50% { transform:rotate(7deg); } }
+@keyframes ra-drop { 0%,45% { opacity:0; transform:translate(0,0); } 55% { opacity:1; } 100% { opacity:0; transform:translate(-14px,-9px); } }
+
+@container (min-width:800px) {
+  .dd-cols { grid-template-columns:360px minmax(0,1fr); }
+  .dd-cols:has(> .dd-controls.collapsed) { grid-template-columns:40px minmax(0,1fr); }
+  .dd-controls.collapsed { width:40px; }
+  .dd-controls.collapsed .dd-ctl-toggle { width:40px; justify-content:center; padding:0; }
+}
+@media (max-width:480px) {
+  .dd-shell { flex-direction:column; }
+  .dd-sidebar,.dd-sidebar.collapsed { width:100%; flex:none; border-right:0; }
+  .dd-sidebar-inner { height:56px; position:static; flex-direction:row; align-items:center;
+    gap:8px; padding:8px 24px; }
+  .dd-sidebar .dd-brand,.dd-sidebar .dd-label,.dd-sidebar #sb-toggle { display:none; }
+  .dd-sidebar nav { flex-direction:row; gap:8px; }
+  .dd-sidebar .dd-mod { width:40px; height:40px; flex:none; justify-content:center; padding:0; }
+  .dd-topbar { height:56px; padding-inline:24px; }
+  .dd-content { padding:24px; }
+  .dd-fold > .collapse-title { padding-inline:8px 32px; }
+  .dd-fold > .collapse-content { padding:0 8px 16px; }
+  .dd-topbar #theme-btn,.dd-topbar .logout-btn { min-width:40px; min-height:40px; padding-inline:8px; }
+  .dd-report-toolbar { align-items:flex-start; }
+  .dd-copy { width:100%; }
+}
+@media (prefers-reduced-motion:reduce) { button,a,summary,input,select,.btn { transition:none; } }
+</style>
+</head>
+<body class="min-h-screen bg-base-200">
+
+<!-- Copy from Supabase project settings > API. The anon key is public by design (protected by RLS). -->
+<!-- NEWSRUN_URL, FINANCIALS_URL: the paths below are for local use. DealDesk-site/deploy.js rewrites
+     them to '../newsrun/' and '../financials/' in the deployed copy; no single relative path works
+     from both places. -->
+<script>
+const NEWSRUN_URL = '../newsrun/';
+const FINANCIALS_URL = '../financials/';
+const SUPABASE_URL = 'https://ffgtikltyjsqscujllhz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmZ3Rpa2x0eWpzcXNjdWpsbGh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzMTI3MTEsImV4cCI6MjEwNDg4ODcxMX0.akPaiEJnIM5cJATQOOfCEHos6FgsEsF2i2p1JF5FqAg';
+</script>
+
+<!-- Inline icons -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="i-news"><path d="M2.5 3.5h11v9h-11z"/><path d="M5 6h6M5 8.5h6M5 11h3.5"/></g>
+    <g id="i-chart"><path d="M2.5 13.5V8M6.2 13.5V3.5M9.8 13.5v-4M13.5 13.5v-7"/></g>
+    <g id="i-pie"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5V8l4.8 2.7"/></g>
+    <g id="i-chev"><path d="M9.5 4.5L5.5 8l4 3.5"/></g>
+    <g id="i-theme"><path d="M13.5 9.6A5.5 5.5 0 016.4 2.5a5.6 5.6 0 107.1 7.1z"/></g>
+    <g id="i-out"><path d="M9.5 11.5L12.5 8 9.5 4.5M12.5 8H5M6.5 2.5h-4v11h4"/></g>
+  </defs>
+</svg>
+
+<!-- Main. No session: the home page is the only sign-in surface. -->
+<section id="scr-main" class="hidden">
+ <div class="dd-shell">
+
+  <aside id="sidebar" class="dd-sidebar">
+   <div class="dd-sidebar-inner">
+    <div class="dd-brand"><span class="dd-brand-text">Bankers’ Toolkit</span><span class="dd-brand-mini">BT</span></div>
+    <nav class="flex flex-col gap-1" style="min-width:0">
+      <a id="nav-newsrun" class="dd-mod" title="Newsrun Tracker" aria-label="Newsrun Tracker">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-news"/></svg>
+        <span class="dd-label">Newsrun Tracker</span>
+      </a>
+      <a id="nav-financials" class="dd-mod" title="Financials (DART)" aria-label="Financials (DART)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chart"/></svg>
+        <span class="dd-label">Financials (DART)</span>
+      </a>
+      <span class="dd-mod dd-active" aria-current="page" title="Revenue Breakdown (DART)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-pie"/></svg>
+        <span class="dd-label">Revenue Breakdown (DART)</span>
+      </span>
+    </nav>
+    <button type="button" id="sb-toggle" class="dd-mod" title="Collapse sidebar" aria-label="Collapse sidebar">
+      <svg id="sb-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chev"/></svg>
+      <span class="dd-label">Collapse</span>
+    </button>
+   </div>
+  </aside>
+
+  <div class="dd-main">
+    <header class="dd-topbar">
+      <svg class="dd-mascot" width="32" height="32" viewBox="0 0 100 100" aria-hidden="true">
+        <rect x="30" y="74" width="13" height="14" rx="4.5" fill="#295B8A"/>
+        <rect x="57" y="74" width="13" height="14" rx="4.5" fill="#295B8A"/>
+        <g transform="rotate(8 89 52)">
+        <rect x="84" y="38" width="10" height="26" rx="2" fill="#8FB8DE" stroke="#295B8A" stroke-width="3"/>
+        <rect x="84" y="55" width="10" height="9" fill="#295B8A"/>
+        <rect x="84" y="46" width="10" height="3" fill="#295B8A"/>
+        </g>
+        <rect x="20" y="32" width="60" height="46" rx="12" fill="#8FB8DE" stroke="#295B8A" stroke-width="3"/>
+        <circle cx="50" cy="65" r="10" fill="#CBDBE9"/>
+        <path d="M50 65 L50 55 A10 10 0 0 1 60 65 Z" fill="#295B8A"/>
+        <circle cx="39" cy="47" r="5" fill="#295B8A"/>
+        <circle cx="61" cy="47" r="5" fill="#295B8A"/>
+        <rect x="14" y="44" width="10" height="24" rx="5" fill="#295B8A"/>
+        <rect x="76" y="44" width="10" height="24" rx="5" fill="#295B8A"/>
+      </svg>
+      <span id="module-title" class="dd-page-title flex-1 truncate">Revenue Breakdown (DART)</span>
+      <span id="nav-email" class="dd-muted hidden sm:inline truncate" style="max-width:220px"></span>
+      <button id="theme-btn" class="btn btn-sm btn-ghost" title="Toggle theme" aria-label="Toggle theme">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-theme"/></svg>
+      </button>
+      <button class="btn btn-sm btn-ghost logout-btn" title="Log out">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-out"/></svg>
+        <span class="hidden sm:inline">Log out</span>
+      </button>
+    </header>
+
+    <main class="dd-content">
+      <div class="dd-cols">
+        <div class="dd-controls flex flex-col gap-4" style="min-width:0">
+          <button type="button" id="ctl-toggle" class="dd-ctl-toggle" title="Hide requests" aria-label="Hide requests" aria-controls="ctl-panel" aria-expanded="true">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chev"/></svg>
+            <span class="dd-label">Hide requests</span>
+          </button>
+          <div id="ctl-panel" class="flex flex-col gap-4" style="min-width:0">
+
+          <div class="dd-card dd-request">
+            <details class="collapse collapse-arrow dd-fold" open>
+              <summary class="collapse-title dd-title">New request</summary>
+              <div class="collapse-content dd-card-body">
+              <form id="req-form" class="flex flex-col gap-2">
+                <label for="f-company">Target company</label>
+                <input id="f-company" type="text" class="input input-sm w-full" placeholder="Company Name" maxlength="100" required>
+                <label for="f-year-from">Fiscal years</label>
+                <div class="dd-field">
+                  <input id="f-year-from" type="number" class="input input-sm" min="1990" max="2100" step="1" aria-label="First fiscal year" required>
+                  <span class="dd-muted">to</span>
+                  <input id="f-year-to" type="number" class="input input-sm" min="1990" max="2100" step="1" aria-label="Last fiscal year" required>
+                </div>
+                <label for="f-ltm-kind">LTM column</label>
+                <div class="dd-field">
+                  <select id="f-ltm-kind" class="select select-sm">
+                    <option value="">None</option>
+                    <option value="1Q">1Q</option>
+                    <option value="1H">1H</option>
+                    <option value="3Q">3Q</option>
+                  </select>
+                  <input id="f-ltm-year" type="number" class="input input-sm hidden" min="1990" max="2100" step="1" aria-label="LTM year">
+                </div>
+                <div id="req-alert" class="hidden alert alert-error p-2"></div>
+                <button class="btn btn-sm btn-primary">Send request</button>
+              </form>
+              </div>
+            </details>
+          </div>
+
+          <div class="dd-card dd-breakdown">
+            <details class="collapse collapse-arrow dd-fold" open>
+              <summary class="collapse-title dd-title">Break revenue down by</summary>
+              <div class="collapse-content dd-card-body">
+                <p id="by-note" class="dd-muted" style="margin:0">Each one is read out of the filing’s own
+                  <b>II. 사업의 내용</b> revenue tables. Pick the splits the company actually publishes —
+                  anything it does not carry comes back as an explicit note, not a number.</p>
+                <div id="by-list"></div>
+                <div class="dd-mrow">
+                  <label for="by-pct">
+                    <input id="by-pct" type="checkbox" class="checkbox checkbox-sm" checked>
+                    <span class="dd-mname">Share of revenue (%)</span>
+                  </label>
+                </div>
+                <div id="by-msg" class="hidden alert alert-error p-2"></div>
+              </div>
+            </details>
+          </div>
+
+          <div class="dd-card dd-register">
+            <details class="collapse collapse-arrow dd-fold">
+              <summary class="collapse-title dd-title">My requests</summary>
+              <div class="collapse-content dd-card-body">
+                <div id="req-list" class="flex flex-col"></div>
+              </div>
+            </details>
+          </div>
+
+          </div>
+        </div>
+
+        <div class="dd-results flex flex-col gap-4" style="min-width:0">
+          <div class="dd-card dd-report">
+            <div class="dd-card-body">
+              <div class="dd-report-toolbar flex items-center justify-between gap-2 flex-wrap">
+                <h2 id="res-title" class="dd-title">Revenue breakdown</h2>
+                <div class="dd-report-actions flex items-center gap-3">
+                  <button id="dl-btn" class="btn btn-sm dd-copy hidden">Download Excel (with back data)</button>
+                </div>
+              </div>
+              <!-- Progress scene. renderResult() only toggles the classes, sets --p and the tag text. -->
+              <div id="res-anim" role="img" aria-label="Progress">
+                <svg viewBox="0 26 640 84">
+                  <defs>
+                    <g id="ra-torso">
+                      <rect x="20" y="32" width="60" height="46" rx="12" fill="#8FB8DE" stroke="#295B8A" stroke-width="3"/>
+                      <circle cx="50" cy="63" r="9" fill="#CBDBE9"/>
+                      <path d="M50 63 L50 54 A9 9 0 0 1 59 63 Z" fill="#295B8A"/>
+                      <circle cx="39" cy="47" r="5" fill="#295B8A"/>
+                      <circle cx="61" cy="47" r="5" fill="#295B8A"/>
+                    </g>
+                    <!-- the one bar, and the same bar after the chisel has been through it -->
+                    <g id="ra-whole">
+                      <rect class="ra-whole" x="100" y="88" width="400" height="18" rx="2"/>
+                      <text x="392" y="101" text-anchor="middle" font-family="IBM Plex Sans,sans-serif"
+                            font-weight="600" font-size="12" letter-spacing="4" fill="#51513D">REVENUE</text>
+                    </g>
+                    <g id="ra-parts">
+                      <rect class="ra-part" x="102" y="90" width="76" height="14" rx="2" fill="#8FB8DE"/>
+                      <rect class="ra-part" x="182" y="90" width="76" height="14" rx="2" fill="#CBDBE9"/>
+                      <rect class="ra-part" x="262" y="90" width="76" height="14" rx="2" fill="#8FB8DE"/>
+                      <rect class="ra-part" x="342" y="90" width="76" height="14" rx="2" fill="#CBDBE9"/>
+                      <rect class="ra-part" x="422" y="90" width="76" height="14" rx="2" fill="#8FB8DE"/>
+                    </g>
+                    <clipPath id="ra-cut" clipPathUnits="userSpaceOnUse">
+                      <rect class="ra-cut" x="100" y="84" width="400" height="26"/>
+                    </clipPath>
+                  </defs>
+                  <line class="ra-ground" x1="0" y1="107" x2="640" y2="107"/>
+                  <g class="ra-run">
+                    <use href="#ra-whole"/>
+                    <g clip-path="url(#ra-cut)"><use href="#ra-parts"/></g>
+                    <!-- the intern walks the bar it is splitting; translate(12,-4) stands it on top -->
+                    <g class="ra-walk"><g transform="translate(12,-4)">
+                      <ellipse class="ra-shadow" cx="50" cy="92" rx="30" ry="3"/>
+                      <g class="ra-bob">
+                        <rect class="ra-limb ra-leg ra-leg-a" x="30" y="74" width="13" height="18" rx="6"/>
+                        <rect class="ra-limb ra-leg ra-leg-b" x="57" y="74" width="13" height="18" rx="6"/>
+                        <rect class="ra-limb ra-leg ra-leg-b" x="14" y="44" width="10" height="24" rx="5"/>
+                        <use href="#ra-torso"/>
+                        <rect class="ra-limb" x="76" y="46" width="10" height="26" rx="5" transform="rotate(-24 81 46)"/>
+                        <g class="ra-chisel">
+                          <rect x="80" y="62" width="14" height="24" rx="2" fill="#CBDBE9" stroke="#295B8A" stroke-width="3"/>
+                          <path d="M80 86 L87 98 L94 86 Z" fill="#295B8A"/>
+                        </g>
+                        <path class="ra-string" d="M120 60 Q104 57 92 62"/>
+                        <g transform="rotate(6 132 60)">
+                          <path class="ra-tag" d="M156 41 H122 L108 60 L122 79 H156 Z"/>
+                          <circle cx="116" cy="60" r="2.6" fill="none" stroke="#1B2021" stroke-width="2.5"/>
+                          <text class="ra-pct" x="140" y="66" text-anchor="middle" font-family="IBM Plex Sans,sans-serif"
+                                font-weight="600" font-size="15" fill="#1B2021">0%</text>
+                        </g>
+                      </g>
+                    </g></g>
+                  </g>
+                  <g class="ra-done">
+                    <use href="#ra-whole"/>
+                    <use href="#ra-parts"/>
+                    <g transform="translate(516,0)">
+                      <rect class="ra-limb" x="4" y="72" width="11" height="36" rx="5.5" transform="rotate(18 9 72)"/>
+                      <use href="#ra-torso" y="28"/>
+                      <rect class="ra-limb" x="82" y="66" width="11" height="26" rx="5.5"/>
+                      <g transform="rotate(-10 86 67.5)"><rect class="ra-limb ra-wipe" x="61" y="62" width="25" height="11" rx="5.5"/></g>
+                      <circle class="ra-drop" cx="52" cy="62" r="3.5"/>
+                    </g>
+                  </g>
+                </svg>
+              </div>
+              <div id="res-meta" class="dd-muted"></div>
+              <div id="res-hint" class="dd-muted">Pick what to break revenue down by, then send the request. Open a finished request to see its numbers.</div>
+              <div id="res-status" class="hidden dd-muted"></div>
+              <div id="res-error" class="hidden text-error"></div>
+              <div class="dd-sheet">
+                <table class="dd-sum">
+                  <thead><tr id="res-head">
+                    <th scope="col" class="dd-unit-cell">
+                      <select id="unit-select" class="select select-xs" aria-label="Unit">
+                        <option value="KRW mm">KRW mm</option>
+                        <option value="KRW bn">KRW bn</option>
+                        <option value="KRW">KRW</option>
+                      </select>
+                    </th>
+                  </tr></thead>
+                  <tbody id="res-body"></tbody>
+                </table>
+              </div>
+              <div id="res-flags"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+ </div>
+</section>
+
+<div id="toast" class="hidden toast toast-end"><div class="alert alert-success"><span id="toast-msg"></span></div></div>
+<script>
+const $ = id => document.getElementById(id);
+const demo = new URLSearchParams(location.search).get('demo') === '1';
+const sb = demo ? null : supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+$('nav-newsrun').href = NEWSRUN_URL;
+$('nav-financials').href = FINANCIALS_URL;
+
+/* Theme (shared with the other module pages) */
+const root = document.documentElement;
+try { root.dataset.theme = /dark/.test(localStorage.nrTheme || '') ? 'deal-dark' : 'deal'; } catch {}
+function paintThemeState() {
+  $('theme-btn').setAttribute('aria-label', 'Dark theme');
+  $('theme-btn').setAttribute('aria-pressed', String(root.dataset.theme === 'deal-dark'));
+}
+paintThemeState();
+$('theme-btn').onclick = () => {
+  const t = root.dataset.theme === 'deal-dark' ? 'deal' : 'deal-dark';
+  root.dataset.theme = t;
+  paintThemeState();
+  try { localStorage.nrTheme = t; } catch {}
+};
+
+/* Sidebar collapse */
+const sidebar = $('sidebar');
+const paintSidebar = () => {
+  const c = sidebar.classList.contains('collapsed');
+  $('sb-icon').style.transform = c ? 'rotate(180deg)' : '';
+  $('sb-toggle').title = c ? 'Expand sidebar' : 'Collapse sidebar';
+  $('sb-toggle').setAttribute('aria-expanded', String(!c));
+  $('sb-toggle').setAttribute('aria-controls', 'sidebar');
+  $('sb-toggle').setAttribute('aria-label', c ? 'Expand sidebar' : 'Collapse sidebar');
+};
+try { sidebar.classList.toggle('collapsed', localStorage.nrSidebar === '1'); } catch {}
+paintSidebar();
+$('sb-toggle').onclick = () => {
+  const c = sidebar.classList.toggle('collapsed');
+  try { localStorage.nrSidebar = c ? '1' : '0'; } catch {}
+  paintSidebar();
+};
+
+/* Request column collapse */
+const ctl = document.querySelector('.dd-controls');
+const paintCtl = () => {
+  const c = ctl.classList.contains('collapsed');
+  const t = c ? 'Show requests' : 'Hide requests';
+  $('ctl-toggle').title = t;
+  $('ctl-toggle').setAttribute('aria-label', t);
+  $('ctl-toggle').setAttribute('aria-expanded', String(!c));
+  $('ctl-toggle').querySelector('.dd-label').textContent = t;
+};
+try { ctl.classList.toggle('collapsed', localStorage.revControls === '1'); } catch {}
+paintCtl();
+$('ctl-toggle').onclick = () => {
+  const c = ctl.classList.toggle('collapsed');
+  try { localStorage.revControls = c ? '1' : '0'; } catch {}
+  paintCtl();
+};
+
+document.querySelector('.logout-btn').setAttribute('aria-label', 'Log out');
+$('toast-msg').setAttribute('role', 'status');
+$('toast-msg').setAttribute('aria-atomic', 'true');
+$('res-status').setAttribute('role', 'status');
+
+const show = id => $(id).classList.remove('hidden');
+let toastTimer;
+function toast(msg) {
+  $('toast-msg').textContent = msg;
+  $('toast').classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $('toast').classList.add('hidden'), 1800);
+}
+
+/* ---------- What revenue gets split by ---------- */
+/* Ids are the contract with the worker (rev_requests.opts.by); the Korean is the filing's
+   own wording for the table each one is read out of. */
+const BY = [
+  ['segment', 'Segment', '부문별'],
+  ['product', 'Product', '제품별'],
+  ['region', 'Region', '지역별'],
+  ['customer', 'Customer', '고객별']
+];
+const BY_LABEL = new Map(BY.map(([id, en, ko]) => [id, en + ' · ' + ko]));
+const MAX_BY = 6;                      // rev_requests CHECK: opts.by holds 1 to 6 entries
+const UNITS = { 'KRW mm': 1, 'KRW bn': 0.001, 'KRW': 1e6 };   // preview values arrive in KRW mm
+
+let by = ['segment'], pct = true, unit = 'KRW mm';
+
+function byMsg(msg) {
+  $('by-msg').textContent = msg || '';
+  $('by-msg').classList.toggle('hidden', !msg);
+}
+
+function renderBy() {
+  const host = $('by-list');
+  host.textContent = '';
+  BY.forEach(([id]) => {
+    const row = document.createElement('div');
+    row.className = 'dd-mrow';
+    row.dataset.id = id;
+    const label = document.createElement('label');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'checkbox checkbox-sm';
+    cb.checked = by.includes(id);
+    cb.onchange = () => {
+      if (cb.checked && by.length >= MAX_BY) { cb.checked = false; return byMsg('At most ' + MAX_BY + ' breakdowns.'); }
+      by = cb.checked ? BY.map(b => b[0]).filter(x => by.includes(x) || x === id) : by.filter(x => x !== id);
+      byMsg(null);
+      renderSheet();
+    };
+    const name = document.createElement('span');
+    name.className = 'dd-mname';
+    name.textContent = BY_LABEL.get(id);
+    label.append(cb, name);
+    row.append(label);
+    host.append(row);
+  });
+}
+$('by-pct').onchange = () => { pct = $('by-pct').checked; renderSheet(); };
+
+/* ---------- Request form ---------- */
+const thisYear = new Date().getFullYear();
+$('f-year-to').value = thisYear - 1;          // last full year
+$('f-year-from').value = thisYear - 5;        // five fiscal years by default
+$('f-ltm-year').value = thisYear;
+$('f-ltm-kind').onchange = () => {
+  const on = !!$('f-ltm-kind').value;
+  $('f-ltm-year').classList.toggle('hidden', !on);
+  if (on) $('f-ltm-year').focus();
+  renderSheet();
+};
+['f-year-from', 'f-year-to', 'f-ltm-year'].forEach(id => $(id).oninput = () => renderSheet());
+
+const periodLabel = r => (r.year_from === r.year_to ? r.year_from + 'A'
+  : r.year_from + 'A–' + r.year_to + 'A') + (r.ltm ? ' · LTM ' + r.ltm : '');
+
+const reqPeriods = r => {
+  const out = [];
+  for (let y = r.year_from; y <= r.year_to; y++) out.push(y + 'A');
+  if (r.ltm) out.push('LTM ' + r.ltm);
+  return out;
+};
+
+function formPeriods() {
+  const from = +$('f-year-from').value, to = +$('f-year-to').value, out = [];
+  if (from >= 1990 && to <= 2100 && to >= from && to - from <= 9) {
+    for (let y = from; y <= to; y++) out.push(y + 'A');
+  }
+  const kind = $('f-ltm-kind').value, y = +$('f-ltm-year').value;
+  if (kind && y >= 1990 && y <= 2100) out.push('LTM ' + kind + String(y).slice(-2));
+  return out;
+}
+
+function requestPayload() {
+  const company = $('f-company').value.trim();
+  if (!company || company.includes(',')) return { err: 'Enter exactly one company name.' };
+  if (company.length > 100) return { err: 'That company name is too long.' };
+  const from = +$('f-year-from').value, to = +$('f-year-to').value;
+  if (!from || !to) return { err: 'Enter both fiscal years.' };
+  if (from < 1990 || to > 2100) return { err: 'Fiscal years must be between 1990 and 2100.' };
+  if (to < from) return { err: 'The last year must be on or after the first year.' };
+  if (to - from > 9) return { err: 'At most 10 fiscal years per request.' };
+  let ltm = null;
+  const kind = $('f-ltm-kind').value;
+  if (kind) {
+    const y = +$('f-ltm-year').value;
+    if (!(y >= 1990 && y <= 2100)) return { err: 'Enter the LTM year.' };
+    ltm = kind + String(y).slice(-2);
+  }
+  if (!by.length) return { err: 'Pick at least one breakdown.' };
+  if (by.length > MAX_BY) return { err: 'At most ' + MAX_BY + ' breakdowns per request.' };
+  return { row: { email: me, company, year_from: from, year_to: to, ltm,
+                  opts: { unit, by: by.slice(), pct } } };
+}
+
+$('req-form').onsubmit = async e => {
+  e.preventDefault();
+  const alertBox = $('req-alert'), button = $('req-form').querySelector('button:not([type="button"])');
+  alertBox.classList.add('hidden');
+  const { err, row } = requestPayload();
+  if (err) { alertBox.textContent = err; alertBox.classList.remove('hidden'); return; }
+  if (demo) { toast('Request submitted'); $('f-company').value = ''; return; }
+  button.disabled = true;
+  try {
+    const { error } = await sb.from('rev_requests').insert(row);
+    if (error) throw error;
+    toast('Request submitted');
+    $('f-company').value = '';
+    loadRequests();
+  } catch (error) {
+    alertBox.textContent = /row-level security/i.test(error.message || '')
+      ? 'This account is not allowed.' : (error.message || 'Request failed. Please try again.');
+    alertBox.classList.remove('hidden');
+  } finally {
+    button.disabled = false;
+  }
+};
+
+/* ---------- Requests register ---------- */
+const BADGE = { pending: 'dd-b-wait', running: 'dd-b-wait', done: 'dd-b-done', error: 'dd-b-err' };
+let reqs = [], openId = null, me = null, channel = null;
+
+async function loadRequests() {
+  const { data, error } = await sb.from('rev_requests').select('*')
+    .order('pinned', { ascending: false }).order('created_at', { ascending: false });
+  if (error) return toast('Could not refresh requests');
+  reqs = data || [];
+  renderRequests();
+  renderResult();
+}
+
+/* Opening a request loads the options it ran with, so the table shows what produced it. */
+function openRequest(r) {
+  openId = r.id;
+  const o = r.opts || {};
+  if (Array.isArray(o.by) && o.by.length) by = o.by.filter(id => BY_LABEL.has(id));
+  if (UNITS[o.unit]) unit = o.unit;
+  pct = o.pct !== false;
+  $('by-pct').checked = pct;
+  paintUnit();
+  renderBy();
+  renderRequests();
+  renderResult();
+}
+
+/* The xlsx in storage is left alone on purpose: the bucket is worker-owned (no web delete policy). */
+async function deleteRequest(r) {
+  if (!confirm('Delete the request for ' + r.company + '?')) return;
+  if (!demo) {
+    const { error } = await sb.from('rev_requests').delete().eq('id', r.id);
+    if (error) return toast('Could not delete the request');
+  }
+  reqs = reqs.filter(x => x.id !== r.id);
+  if (openId === r.id) { openId = null; renderResult(); }
+  renderRequests();
+}
+
+async function togglePin(r) {
+  if (!demo) {
+    const { error } = await sb.from('rev_requests').update({ pinned: !r.pinned }).eq('id', r.id);
+    if (error) return toast('Could not change the pin');
+  }
+  r.pinned = !r.pinned;
+  reqs.sort((a, b) => !!b.pinned - !!a.pinned);   // stable: newest-first order survives inside each group
+  renderRequests();
+}
+
+function reqAction(r, key, glyph, label, onclick) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'btn';
+  b.dataset.key = r.id + '|' + key;
+  b.textContent = glyph;
+  b.title = label;
+  b.setAttribute('aria-label', label);
+  b.onclick = onclick;
+  return b;
+}
+
+function renderRequests() {
+  const host = $('req-list');
+  const refocus = host.contains(document.activeElement) ? document.activeElement.dataset.key : null;
+  host.textContent = '';
+  if (!reqs.length) {
+    const empty = document.createElement('div');
+    empty.className = 'dd-muted';
+    empty.textContent = 'No requests yet.';
+    host.append(empty);
+    return;
+  }
+  reqs.forEach(r => {
+    const row = document.createElement('div');
+    row.className = 'dd-ritem';
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'dd-ropen';
+    b.dataset.key = r.id + '|open';
+    b.setAttribute('aria-current', String(r.id === openId));
+    const top = document.createElement('div');
+    top.className = 'flex items-center justify-between gap-2';
+    const name = document.createElement('span');
+    name.className = 'font-medium truncate';
+    name.textContent = r.company;
+    const badge = document.createElement('span');
+    badge.className = 'badge badge-sm ' + (BADGE[r.status] || 'dd-b-mute');
+    badge.textContent = r.status;
+    top.append(name, badge);
+    const sub = document.createElement('div');
+    sub.className = 'dd-muted dd-meta';
+    sub.textContent = periodLabel(r);
+    b.append(top, sub);
+    b.onclick = () => openRequest(r);
+    const acts = document.createElement('div');
+    acts.className = 'dd-mact';
+    const pin = reqAction(r, 'pin', r.pinned ? '★' : '☆', 'Pin request', () => togglePin(r));
+    pin.setAttribute('aria-pressed', String(!!r.pinned));
+    acts.append(pin, reqAction(r, 'del', '✕', 'Delete request', () => deleteRequest(r)));
+    row.append(b, acts);
+    host.append(row);
+  });
+  if (refocus) host.querySelector('[data-key="' + refocus + '"]')?.focus({ preventScroll: true });
+}
+
+/* ---------- The breakdown sheet ---------- */
+const nf = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+const amountCell = v => typeof v !== 'number' || !Number.isFinite(v) ? '–' : nf.format(Math.round(v * UNITS[unit]));
+/* preview.rows[].pct holds fractions of revenue (0.312 = 31.2%), one per period. */
+const pctCell = v => typeof v !== 'number' || !Number.isFinite(v) ? '–' : (v * 100).toFixed(1) + '%';
+
+const STATUS_NOTE = {
+  pending: 'Queued. The worker picks it up on its next pass.',
+  running: 'Running. The breakdown appears here when the worker finishes.'
+};
+const openReq = () => reqs.find(x => x.id === openId);
+
+function paintUnit() { $('unit-select').value = unit; }
+$('unit-select').onchange = () => { unit = $('unit-select').value; renderSheet(); };
+
+/* pending = the running scene at 0%; error = no scene at all (the error text carries it). */
+function paintAnim(r) {
+  const el = $('res-anim'), st = r && r.status;
+  const p = st === 'done' ? 100 : Math.max(0, Math.min(100, r?.progress ?? 0));
+  el.classList.toggle('is-running', st === 'pending' || st === 'running');
+  el.classList.toggle('is-done', st === 'done');
+  el.style.setProperty('--p', p / 100);
+  el.querySelector('.ra-pct').textContent = p + '%';
+  el.setAttribute('aria-label', st === 'done' ? 'Done' : 'Running, ' + p + '%');
+}
+
+function renderResult() {
+  const r = openReq();
+  const toggle = (id, on) => $(id).classList.toggle('hidden', !on);
+  $('res-title').textContent = r ? r.company : 'Revenue breakdown';
+  $('res-meta').textContent = r ? periodLabel(r) + ' · ' + r.status : '';
+  paintAnim(r);
+  toggle('res-hint', !r);
+  const note = r ? STATUS_NOTE[r.status] : '';
+  $('res-status').textContent = note || '';
+  toggle('res-status', !!note);
+  $('res-error').textContent = r && r.status === 'error' ? (r.error || 'The run failed.') : '';
+  toggle('res-error', !!r && r.status === 'error');
+  toggle('dl-btn', !!r?.xlsx_path);
+  renderSheet();
+  renderFlags(r?.flags ?? r?.preview?.flags);
+}
+
+function renderSheet() {
+  const head = $('res-head'), body = $('res-body');
+  [...head.children].slice(1).forEach(el => el.remove());
+  body.textContent = '';
+  const r = openReq();
+  const pv = r?.preview;
+  const periods = pv?.periods || (r ? reqPeriods(r) : formPeriods());
+  const showPct = r ? (r.opts?.pct !== false) : pct;
+  periods.forEach(p => {
+    const th = document.createElement('th');
+    th.scope = 'col';
+    th.textContent = p;
+    head.append(th);
+    if (!showPct) return;
+    const pth = document.createElement('th');
+    pth.scope = 'col';
+    pth.className = 'dd-pct-col';
+    pth.textContent = '%';
+    head.append(pth);
+  });
+  const span = periods.length * (showPct ? 2 : 1) + 1;
+  const rows = Array.isArray(pv?.rows) ? pv.rows : [];
+  /* Order: what the request asked for, then anything else the filing turned up. */
+  const asked = r ? (Array.isArray(r.opts?.by) ? r.opts.by : []) : by;
+  const kinds = [...new Set(asked.concat(rows.map(x => x.kind).filter(Boolean)))];
+
+  if (!kinds.length) return muted(body, span, 'Pick what to break revenue down by, then send the request.');
+
+  kinds.forEach(kind => {
+    const gh = document.createElement('tr');
+    gh.className = 'dd-ohead';
+    const cell = document.createElement('th');
+    cell.scope = 'colgroup';
+    cell.colSpan = span;
+    cell.textContent = BY_LABEL.get(kind) || kind;
+    gh.append(cell);
+    body.append(gh);
+    const list = rows.filter(x => x.kind === kind);
+    if (!list.length) return muted(body, span, r ? 'Nothing under this split yet.' : 'The run fills this in.');
+    list.forEach(row => {
+      const tr = document.createElement('tr');
+      const label = document.createElement('th');
+      label.scope = 'row';
+      label.textContent = row.label || row.key || '';
+      tr.append(label);
+      periods.forEach((_, j) => {
+        const td = document.createElement('td');
+        td.textContent = amountCell(row.values?.[j]);
+        tr.append(td);
+        if (!showPct) return;
+        const ptd = document.createElement('td');
+        ptd.className = 'dd-pct-col';
+        ptd.textContent = pctCell(row.pct?.[j]);
+        tr.append(ptd);
+      });
+      body.append(tr);
+    });
+  });
+}
+
+function muted(body, span, text) {
+  const tr = document.createElement('tr');
+  const td = document.createElement('td');
+  td.colSpan = span;
+  td.className = 'dd-muted';
+  td.style.textAlign = 'left';
+  td.textContent = text;
+  tr.append(td);
+  body.append(tr);
+}
+
+/* {msg, level}: def = the definitions, muted; note = source, gap or restatement, bold. */
+function renderFlags(flags) {
+  const host = $('res-flags');
+  host.textContent = '';
+  (Array.isArray(flags) ? flags : []).forEach(f => {
+    const row = document.createElement('div');
+    row.className = 'dd-flag ' + (f?.level === 'note' ? 'is-note' : 'is-def');
+    row.textContent = typeof f === 'string' ? f : (f?.msg || '');
+    if (row.textContent) host.append(row);
+  });
+}
+
+$('dl-btn').onclick = async () => {
+  const r = openReq();
+  if (!r?.xlsx_path) return;
+  if (demo) return toast('Demo mode: no file to download');
+  const { data, error } = await sb.storage.from('revenue').createSignedUrl(r.xlsx_path, 600);
+  if (error || !data?.signedUrl) return toast('Could not create the download link');
+  window.open(data.signedUrl, '_blank', 'noopener');
+};
+
+paintUnit();
+renderBy();
+renderResult();
+
+/* ---------- Auth: the session is set on the home page and shared through localStorage ---------- */
+if (!demo) {
+  document.querySelectorAll('.logout-btn').forEach(b => b.onclick = async () => { await sb.auth.signOut(); location.replace('../'); });
+
+  const boot = session => {
+    if (!session) return location.replace('../');
+    me = session.user.email;
+    $('nav-email').textContent = me;
+    show('scr-main');
+    loadRequests();
+    if (!channel) channel = sb.channel('rev-reqs')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'rev_requests', filter: 'email=eq.' + me }, loadRequests)
+      .subscribe(status => {
+        // No live updates: the list still refreshes on every send and on reload.
+        if (status !== 'SUBSCRIBED') console.warn('realtime channel:', status);
+      });
+  };
+  sb.auth.getSession().then(({ data }) => boot(data.session));
+  sb.auth.onAuthStateChange((_e, s) => boot(s));
+}
+
+/* demo=1: obviously fake numbers, for visual QA only. Never shown to a signed-in user. */
+if (demo) {
+  me = 'demo@revenue';
+  $('nav-email').textContent = me;
+  show('scr-main');
+  const P = ['2021A', '2022A', '2023A', '2024A', '2025A', 'LTM 1H26'];
+  const line = (key, label, kind, base, share) => ({
+    key, label: 'FAKE DEMO — ' + label, kind,
+    values: P.map((_, i) => base * (1 + i * 0.12)),
+    pct: P.map((_, i) => share + i * 0.004)
+  });
+  reqs = [
+    { id: 'd1', company: 'Samsung Electronics', year_from: 2021, year_to: 2025, ltm: '1H26', status: 'done',
+      xlsx_path: 'd1/samsung_2021-1H26_Revenue.xlsx', progress: 100,
+      opts: { unit: 'KRW mm', by: ['segment', 'product', 'region'], pct: true },
+      preview: {
+        periods: P, unit: 'KRW mm',
+        rows: [
+          line('dx', 'DX 부문', 'segment', 167000000, 0.542),
+          line('ds', 'DS 부문', 'segment', 94000000, 0.305),
+          line('sdc', 'SDC 부문', 'segment', 30000000, 0.097),
+          line('harman', 'Harman', 'segment', 11000000, 0.036),
+          line('mx', '무선(MX)', 'product', 109000000, 0.354),
+          line('mem', '메모리', 'product', 62000000, 0.201),
+          line('va', '영상기기', 'product', 29000000, 0.094),
+          line('kr', '국내', 'region', 42000000, 0.136),
+          line('am', '미주', 'region', 108000000, 0.350),
+          line('cn', '중국', 'region', 51000000, 0.165),
+          line('eu', '구주·기타', 'region', 107000000, 0.347)
+        ],
+        flags: [
+          { level: 'def', msg: 'FAKE DEMO — 부문별 = II. 사업의 내용 > 1. 사업의 개요 > 부문별 요약 재무현황' },
+          { level: 'def', msg: 'FAKE DEMO — 제품별 = 4. 매출 및 수주상황 > 주요 제품 등의 매출현황' },
+          { level: 'def', msg: 'FAKE DEMO — 지역별 = 연결재무제표 주석 > 영업부문 정보 > 지역별 매출' },
+          { level: 'def', msg: 'FAKE DEMO — 내부거래 제거 후 외부고객 매출 기준' },
+          { level: 'note', msg: 'FAKE DEMO — 2021A 제품별: 공시 구분이 달라 3개 품목만 대응' },
+          { level: 'note', msg: 'FAKE DEMO — 고객별: 익명 처리되어 요청에서 제외' }
+        ]
+      } },
+    { id: 'd2', company: 'SK hynix', year_from: 2022, year_to: 2025, ltm: null, status: 'running', progress: 46,
+      opts: { unit: 'KRW bn', by: ['product', 'region'], pct: true } },
+    { id: 'd3', company: 'Hyundai Motor', year_from: 2021, year_to: 2025, ltm: '1Q26', status: 'error',
+      opts: { unit: 'KRW mm', by: ['segment'], pct: false },
+      error: 'FAKE DEMO ERROR — DART report 20260514000123 carries no segment revenue table.' }
+  ];
+  renderRequests();
+  openRequest(reqs[0]);
+}
+</script>
+</body>
+</html>

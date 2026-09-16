@@ -6,6 +6,7 @@ const chrome = ['C:/Program Files/Google/Chrome/Application/chrome.exe',
 
 const I1 = { body: '#E8927C', ink: '#98341B', tint: '#EBC9C0' };
 const I2 = { body: '#9DBF9E', ink: '#256F27', tint: '#CBD9CB' };
+const I3 = { body: '#8FB8DE', ink: '#295B8A', tint: '#CBDBE9' };
 
 /* ---- shared furniture: thin-line desk, stool, monitor rig, sand dune at 55% ---- */
 // one rig per desk: a monitor centred behind the intern (the body occludes the middle, the
@@ -42,6 +43,12 @@ const pencilEar = (x, c) => `<g transform="rotate(32 ${x + 20} 30)">
       <rect x="${x + 15}" y="6" width="10" height="24" rx="2" fill="${c.body}" stroke="${c.ink}" stroke-width="3"/>
       <path d="M${x + 15} 30 L${x + 20} 39 L${x + 25} 30 Z" fill="${c.ink}"/>
       <rect x="${x + 15}" y="15" width="10" height="3" fill="${c.ink}"/>
+    </g>`;
+// stacked bar carried at the shoulder, the way 02 carries its pencil
+const barEar = (x, c) => `<g transform="rotate(32 ${x + 20} 30)">
+      <rect x="${x + 15}" y="6" width="10" height="26" rx="2" fill="${c.body}" stroke="${c.ink}" stroke-width="3"/>
+      <rect x="${x + 15}" y="23" width="10" height="9" fill="${c.ink}"/>
+      <rect x="${x + 15}" y="14" width="10" height="3" fill="${c.ink}"/>
     </g>`;
 const eyes = (x, c) => `<circle cx="${x - 15}" cy="56" r="5" fill="${c.ink}"/>
       <circle cx="${x - 2}" cy="56" r="5" fill="${c.ink}"/>`;
@@ -89,11 +96,33 @@ const i2Turn = x => `<g class="turn" visibility="hidden">
     </g>
   </g>`;
 
-const X1 = 120, X2 = 360;
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120" width="480" height="120" role="img" aria-label="Interns at their desks">
+/* intern 03 - one whole ruled across the back, split into parts by two ticks */
+const i3Back = x => `<g class="back">
+    ${armL(x, I3, -10)}${armR(x, I3, 10)}
+    ${barEar(x, I3)}
+    ${bodyBack(x, I3)}
+    <path d="M${x - 24} 58 H${x + 24}" stroke="${I3.tint}" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <path d="M${x - 8} 62 V80 M${x + 8} 62 V80" stroke="${I3.tint}" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </g>`;
+
+const i3Turn = x => `<g class="turn" visibility="hidden">
+    ${armL(x, I3, 4)}${armR(x, I3, 10)}
+    <g transform="rotate(-7 ${x} 62) translate(-4 -3)">
+      ${barEar(x, I3)}
+      ${bodyBack(x, I3)}
+      ${eyes(x, I3)}
+      <circle cx="${x + 12}" cy="72" r="7" fill="${I3.tint}"/>
+      <path d="M${x + 12} 72 L${x + 12} 65 A7 7 0 0 1 ${x + 19} 72 Z" fill="${I3.ink}"/>
+    </g>
+  </g>`;
+
+// 240px per seat: desk 148 wide + its tower, so a fourth intern is just X4 = 840 and viewBox 960
+const X1 = 120, X2 = 360, X3 = 600;
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 120" width="720" height="120" role="img" aria-label="Interns at their desks">
   <defs><filter id="dd-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter></defs>
   ${desk(X1)}
   ${desk(X2)}
+  ${desk(X3)}
   <g class="i1">
     ${i1Back(X1)}
     ${i1Turn(X1)}
@@ -102,12 +131,16 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 120" width
     ${i2Back(X2)}
     ${i2Turn(X2)}
   </g>
+  <g class="i3">
+    ${i3Back(X3)}
+    ${i3Turn(X3)}
+  </g>
 </svg>
 `;
 fs.writeFileSync(p.join(DIR, 'desk-scene.svg'), svg);
 
 const proof = `<!doctype html><html><head><meta charset="utf-8"><style>
-body{margin:0;background:${K}} .f{width:480px;padding:0}
+body{margin:0;background:${K}} .f{width:720px;padding:0}
 @media (prefers-reduced-motion:no-preference){
   @keyframes dd-breathe{0%,100%{opacity:.3}50%{opacity:.5}}
   .dd-glow{animation:dd-breathe 3s ease-in-out infinite}
@@ -118,7 +151,7 @@ fs.writeFileSync(p.join(DIR, 'desk-scene-proof.html'), proof);
 (async () => {
   const b = await puppeteer.launch({ executablePath: chrome, headless: 'new' });
   const pg = await b.newPage();
-  await pg.setViewport({ width: 480, height: 120, deviceScaleFactor: 2 });
+  await pg.setViewport({ width: 720, height: 120, deviceScaleFactor: 2 });
   await pg.goto('file:///' + p.join(DIR, 'desk-scene-proof.html').replace(/\\/g, '/'));
   await (await pg.$('.f')).screenshot({ path: p.join(DIR, 'desk-scene.png') });
 

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bankers’ Toolkit</title>
-<meta name="description" content="Bankers’ Toolkit: curated news runs and DART financial back data for deal work.">
+<meta name="description" content="Bankers’ Toolkit: curated news runs, DART financial back data and revenue breakdowns for deal work.">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
@@ -134,8 +134,8 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
 .dd-index > div { display:flex; align-items:center; height:40px;
   border-top:1px solid rgba(227,220,194,.14); }
 .dd-index > div:last-child { border-bottom:1px solid rgba(227,220,194,.14); }
-.dd-index dt { flex:1 1 auto; min-width:0; padding-right:12px;
-  display:flex; align-items:center; gap:10px; }
+.dd-index dt { flex:1 1 auto; min-width:0; padding-right:6px;
+  display:flex; align-items:center; gap:9px; }
 .dd-who { min-width:0; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 /* each module is an intern: a small monochrome glyph and a numbered label, nothing louder */
 .dd-ava { flex:none; }
@@ -146,12 +146,14 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
 .dd-note-label { flex:1 1 auto; min-width:0; padding-right:12px; }
 .dd-note-cell { flex:none; align-self:stretch; display:flex; align-items:flex-end;
   width:var(--dd-col); padding-left:13px; box-sizing:border-box; }
-.dd-scene { display:block; width:180px; height:45px; margin-bottom:-2px; }
+.dd-scene { display:block; width:270px; height:45px; margin-bottom:-2px; }
 .dd-scene :is(.turn,.alert) { visibility:hidden; transform-box:view-box; }
 .dd-scene .i1 .turn { transform-origin:120px 40px; }
 .dd-scene .i2 .turn { transform-origin:360px 40px; }
+.dd-scene .i3 .turn { transform-origin:600px 40px; }
 .dd-scene .i1 .alert { transform-origin:154.5px 15px; }
 .dd-scene .i2 .alert { transform-origin:408.5px 15px; }
+.dd-scene .i3 .alert { transform-origin:648.5px 15px; }
 /* its own 40px ledger row directly above the index, so the ruling stays phase-locked */
 .dd-index-note { display:flex; align-items:center; height:40px; margin:112px 0 0;
   letter-spacing:.04em; }
@@ -194,16 +196,17 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
 :is(#au-msg,#pw-msg,#acl-msg).dd-err { color:var(--color-error); border-left-color:var(--color-primary); }
 .dd-err { color:var(--color-error); }
 
-/* The desk: two tiles, then the owner's access list. */
+/* The desk: one tile per intern, then the owner's access list. */
 .dd-content { max-width:960px; width:100%; margin:0 auto; padding:48px 24px 64px; box-sizing:border-box; }
-.dd-tiles { display:grid; gap:24px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.dd-tiles { display:grid; gap:24px; grid-template-columns:repeat(3,minmax(0,1fr)); }
 .dd-tile { display:flex; flex-direction:column; gap:8px; min-height:204px; padding:24px;
   box-sizing:border-box; text-decoration:none; color:inherit; background:var(--dd-lift);
   border:1px solid var(--dd-border); border-radius:4px; }
 .dd-tile:hover { background:var(--dd-work); border-color:var(--color-primary); }
 .dd-desk-title { margin:0 0 32px; font-size:26px; line-height:32px; font-weight:600;
   letter-spacing:-.02em; }
-.dd-tile-head { display:flex; align-items:center; gap:12px; }
+/* 이름이 두 줄인 인턴이 섞여도 세 카드의 설명·숫자 줄이 같은 높이에서 시작하도록 머리 높이를 고정한다 */
+.dd-tile-head { display:flex; align-items:center; gap:12px; min-height:66px; }
 .dd-tile-id { min-width:0; }
 .dd-tile-id .dd-eyebrow { display:block; margin-bottom:2px; }
 .dd-tile h2 { margin:0; font-size:20px; font-weight:600; line-height:1.2; letter-spacing:-.02em; }
@@ -249,6 +252,7 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
   .dd-index-note { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 100ms both; }
   .dd-index > div:nth-child(1) { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 120ms both; }
   .dd-index > div:nth-child(2) { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 160ms both; }
+  .dd-index > div:nth-child(3) { animation:dd-rise 320ms cubic-bezier(.22,.61,.36,1) 200ms both; }
   /* the monitor's screen light, breathing. Static under reduced motion. */
   @keyframes dd-breathe { 0%,100% { opacity:.3; } 50% { opacity:.5; } }
   .dd-glow { animation:dd-breathe 3s ease-in-out infinite; }
@@ -288,6 +292,10 @@ body:has(#scr-main:not(.hidden)) #theme-btn {
   .dd-topbar { padding:0 8px; }
   .dd-topbar #theme-btn,.dd-topbar .logout-btn { min-width:44px; min-height:44px; padding-inline:8px; }
   body:has(.dd-entry > section:not(.hidden)) #theme-btn { color:#E3DCC2; }
+}
+/* three tiles at 960, two while the row would squeeze them, one on a phone */
+@media (max-width:899px) {
+  .dd-tiles { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
 @media (max-width:719px) {
   .dd-tiles { grid-template-columns:minmax(0,1fr); gap:16px; }
@@ -340,11 +348,11 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
       <p class="dd-plate-line">A bunch of interns working below minimum wage. Legally.</p>
     </div>
     <p class="dd-index-note dd-eyebrow">
-      <span class="dd-note-label">2 interns standing by</span>
+      <span class="dd-note-label">3 interns standing by</span>
       <span class="dd-note-cell">
-        <svg class="dd-scene" width="180" height="45" viewBox="0 0 480 120" aria-hidden="true">
-        <defs><filter id="dd-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter></defs>
-        <g stroke="#E3DC95" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round" fill="none">
+        <svg class="dd-scene" width="270" height="45" viewBox="0 0 720 120" aria-hidden="true">
+          <defs><filter id="dd-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter></defs>
+          <g stroke="#E3DC95" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round" fill="none">
             <path d="M46 92 H194"/>
             <path d="M54 92 V114 M186 92 V114"/>
             <rect x="102" y="88" width="36" height="5" rx="2.5"/>
@@ -372,11 +380,25 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
             <rect x="440" y="86" width="18" height="28" rx="2"/>
             <circle cx="445" cy="91" r="2" fill="#F7F5EE" stroke="none" opacity="0.9"/>
           </g>
+          <g stroke="#E3DC95" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round" fill="none">
+            <path d="M526 92 H674"/>
+            <path d="M534 92 V114 M666 92 V114"/>
+            <rect x="582" y="88" width="36" height="5" rx="2.5"/>
+            <path d="M588 93 V114 M612 93 V114 M588 105 H612"/>
+            <g class="dd-glow" fill="#F7F5EE" stroke="none" opacity="0.4" filter="url(#dd-glow)">
+              <rect x="570" y="27" width="60" height="43" rx="6"/>
+              <ellipse cx="600" cy="92" rx="32" ry="5"/>
+            </g>
+            <rect x="570" y="27" width="60" height="43" rx="3"/>
+            <path d="M600 70 V92 M590 92 H610"/>
+            <rect x="680" y="86" width="18" height="28" rx="2"/>
+            <circle cx="685" cy="91" r="2" fill="#F7F5EE" stroke="none" opacity="0.9"/>
+          </g>
           <g class="i1">
-        <g class="alert" visibility="hidden">
-          <rect x="150" y="2" width="9" height="17" rx="4.5" fill="#E3DC95"/>
-          <circle cx="154.5" cy="25" r="4.5" fill="#E3DC95"/>
-        </g>
+                  <g class="alert" visibility="hidden">
+                    <rect x="150" y="2" width="9" height="17" rx="4.5" fill="#E3DC95"/>
+                    <circle cx="154.5" cy="25" r="4.5" fill="#E3DC95"/>
+                  </g>
             <g class="back">
             <rect x="86" y="50" width="10" height="42" rx="5" fill="#98341B" transform="rotate(-10 91 56)"/><rect x="144" y="50" width="10" height="42" rx="5" fill="#98341B" transform="rotate(10 149 56)"/>
             <path d="M120 36 V26" stroke="#98341B" stroke-width="3" stroke-linecap="round" fill="none"/>
@@ -404,10 +426,10 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
           </g>
           </g>
           <g class="i2">
-        <g class="alert" visibility="hidden">
-          <rect x="404" y="2" width="9" height="17" rx="4.5" fill="#E3DC95"/>
-          <circle cx="408.5" cy="25" r="4.5" fill="#E3DC95"/>
-        </g>
+                  <g class="alert" visibility="hidden">
+                    <rect x="404" y="2" width="9" height="17" rx="4.5" fill="#E3DC95"/>
+                    <circle cx="408.5" cy="25" r="4.5" fill="#E3DC95"/>
+                  </g>
             <g class="back">
             <rect x="326" y="50" width="10" height="42" rx="5" fill="#256F27" transform="rotate(-10 331 56)"/><rect x="384" y="50" width="10" height="42" rx="5" fill="#256F27" transform="rotate(10 389 56)"/>
             <g transform="rotate(32 380 30)">
@@ -432,6 +454,38 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
               <circle cx="358" cy="56" r="5" fill="#256F27"/>
               <path d="M362 70 H382" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
               <path d="M372 70 V80" stroke="#CBD9CB" stroke-width="3" stroke-linecap="round" fill="none"/>
+            </g>
+          </g>
+          </g>
+          <g class="i3">
+                  <g class="alert" visibility="hidden">
+                    <rect x="644" y="2" width="9" height="17" rx="4.5" fill="#E3DC95"/>
+                    <circle cx="648.5" cy="25" r="4.5" fill="#E3DC95"/>
+                  </g>
+            <g class="back">
+            <rect x="566" y="50" width="10" height="42" rx="5" fill="#295B8A" transform="rotate(-10 571 56)"/><rect x="624" y="50" width="10" height="42" rx="5" fill="#295B8A" transform="rotate(10 629 56)"/>
+            <g transform="rotate(32 620 30)">
+              <rect x="615" y="6" width="10" height="26" rx="2" fill="#8FB8DE" stroke="#295B8A" stroke-width="3"/>
+              <rect x="615" y="23" width="10" height="9" fill="#295B8A"/>
+              <rect x="615" y="14" width="10" height="3" fill="#295B8A"/>
+            </g>
+            <rect x="573" y="32" width="54" height="54" rx="12" fill="#8FB8DE" stroke="#295B8A" stroke-width="3"/>
+            <path d="M576 58 H624" stroke="#CBDBE9" stroke-width="3" stroke-linecap="round" fill="none"/>
+            <path d="M592 62 V80 M608 62 V80" stroke="#CBDBE9" stroke-width="3" stroke-linecap="round" fill="none"/>
+          </g>
+            <g class="turn" visibility="hidden">
+            <rect x="566" y="50" width="10" height="42" rx="5" fill="#295B8A" transform="rotate(4 571 56)"/><rect x="624" y="50" width="10" height="42" rx="5" fill="#295B8A" transform="rotate(10 629 56)"/>
+            <g transform="rotate(-7 600 62) translate(-4 -3)">
+              <g transform="rotate(32 620 30)">
+              <rect x="615" y="6" width="10" height="26" rx="2" fill="#8FB8DE" stroke="#295B8A" stroke-width="3"/>
+              <rect x="615" y="23" width="10" height="9" fill="#295B8A"/>
+              <rect x="615" y="14" width="10" height="3" fill="#295B8A"/>
+            </g>
+              <rect x="573" y="32" width="54" height="54" rx="12" fill="#8FB8DE" stroke="#295B8A" stroke-width="3"/>
+              <circle cx="585" cy="56" r="5" fill="#295B8A"/>
+              <circle cx="598" cy="56" r="5" fill="#295B8A"/>
+              <circle cx="612" cy="72" r="7" fill="#CBDBE9"/>
+              <path d="M612 72 L612 65 A7 7 0 0 1 619 72 Z" fill="#295B8A"/>
             </g>
           </g>
           </g>
@@ -484,6 +538,29 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
           <span class="dd-who">Financials (DART)</span>
         </dt>
         <dd>Neatly organized, errorless Excel back data.</dd>
+      </div>
+      <div>
+        <dt>
+          <svg class="dd-ava" width="28" height="28" viewBox="0 0 100 100" aria-hidden="true">
+            <rect x="30" y="74" width="13" height="14" rx="4.5" fill="#295B8A"/>
+            <rect x="57" y="74" width="13" height="14" rx="4.5" fill="#295B8A"/>
+            <g transform="rotate(8 89 52)">
+            <rect x="84" y="38" width="10" height="26" rx="2" fill="#8FB8DE" stroke="#295B8A" stroke-width="3"/>
+            <rect x="84" y="55" width="10" height="9" fill="#295B8A"/>
+            <rect x="84" y="46" width="10" height="3" fill="#295B8A"/>
+            </g>
+            <rect x="20" y="32" width="60" height="46" rx="12" fill="#8FB8DE" stroke="#295B8A" stroke-width="3"/>
+            <circle cx="50" cy="65" r="10" fill="#CBDBE9"/>
+            <path d="M50 65 L50 55 A10 10 0 0 1 60 65 Z" fill="#295B8A"/>
+            <circle cx="39" cy="47" r="5" fill="#295B8A"/>
+            <circle cx="61" cy="47" r="5" fill="#295B8A"/>
+            <rect x="14" y="44" width="10" height="24" rx="5" fill="#295B8A"/>
+            <rect x="76" y="44" width="10" height="24" rx="5" fill="#295B8A"/>
+          </svg>
+          <span class="dd-eyebrow">Intern 03</span>
+          <span class="dd-who">Revenue Breakdown (DART)</span>
+        </dt>
+        <dd>Revenue split by segment, product and region.</dd>
       </div>
     </dl>
   </aside>
@@ -584,6 +661,35 @@ const OWNER_EMAIL = 'ehk112y@gmail.com';
         <p>Neatly organized, errorless Excel back data.</p>
         <div class="dd-tile-foot">
           <div id="stat-financials" class="dd-figure">&ndash;</div>
+          <span class="dd-open">Open</span>
+        </div>
+      </a>
+      <a class="dd-tile" href="revenue/">
+        <div class="dd-tile-head">
+          <svg class="dd-ava" width="48" height="48" viewBox="0 0 100 100" aria-hidden="true">
+            <rect x="30" y="74" width="13" height="14" rx="4.5" fill="#295B8A"/>
+            <rect x="57" y="74" width="13" height="14" rx="4.5" fill="#295B8A"/>
+            <g transform="rotate(8 89 52)">
+            <rect x="84" y="38" width="10" height="26" rx="2" fill="#8FB8DE" stroke="#295B8A" stroke-width="3"/>
+            <rect x="84" y="55" width="10" height="9" fill="#295B8A"/>
+            <rect x="84" y="46" width="10" height="3" fill="#295B8A"/>
+            </g>
+            <rect x="20" y="32" width="60" height="46" rx="12" fill="#8FB8DE" stroke="#295B8A" stroke-width="3"/>
+            <circle cx="50" cy="65" r="10" fill="#CBDBE9"/>
+            <path d="M50 65 L50 55 A10 10 0 0 1 60 65 Z" fill="#295B8A"/>
+            <circle cx="39" cy="47" r="5" fill="#295B8A"/>
+            <circle cx="61" cy="47" r="5" fill="#295B8A"/>
+            <rect x="14" y="44" width="10" height="24" rx="5" fill="#295B8A"/>
+            <rect x="76" y="44" width="10" height="24" rx="5" fill="#295B8A"/>
+          </svg>
+          <div class="dd-tile-id">
+            <span class="dd-eyebrow">Intern 03</span>
+            <h2>Revenue Breakdown (DART)</h2>
+          </div>
+        </div>
+        <p>Revenue split by segment, product and region.</p>
+        <div class="dd-tile-foot">
+          <div id="stat-revenue" class="dd-figure">&ndash;</div>
           <span class="dd-open">Open</span>
         </div>
       </a>
@@ -763,6 +869,7 @@ if (demo) {
     show('scr-main');
     stat('requests', $('stat-newsrun'));
     stat('fin_requests', $('stat-financials'));
+    stat('rev_requests', $('stat-revenue'));
     const owner = session.user.email.toLowerCase() === OWNER_EMAIL;
     $('acl').classList.toggle('hidden', !owner);
     if (owner) loadAcl();
@@ -845,7 +952,7 @@ if (demo) {
      snaps back to work. No pointer input — it just happens while you read. */
   const scene = document.querySelector('.dd-scene');
   if (scene) {
-    const crew = [scene.querySelector('.i1'), scene.querySelector('.i2')];
+    const crew = ['.i1', '.i2', '.i3'].map(s => scene.querySelector(s));
     let who = 0, timer = null;
     const show = (el, on) => { el.style.visibility = on ? 'visible' : 'hidden'; };
 
@@ -875,7 +982,7 @@ if (demo) {
 
     const next = ms => { clearTimeout(timer); timer = setTimeout(run, ms); };
     function run() {
-      if (!document.hidden) glance(crew[who++ % 2]);
+      if (!document.hidden) glance(crew[who++ % crew.length]);
       next(5000);
     }
     document.addEventListener('visibilitychange', () => document.hidden ? clearTimeout(timer) : next(5000));
