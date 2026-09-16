@@ -219,7 +219,9 @@ table.dd-sum { border-collapse:collapse; width:100%; font-size:13px; font-varian
   border:0; border-radius:2px; background:transparent; color:var(--dd-muted); }
 .dd-ctrl .btn:hover { background:var(--dd-hover); color:var(--color-base-content); }
 .dd-grip { cursor:grab; }
-.dd-flag { padding:4px 0; border-bottom:1px solid var(--dd-border); }
+.dd-flag { padding:4px 0; border-bottom:1px solid var(--dd-border); font-size:9.5px; line-height:1.5; }
+.dd-flag.is-def { color:var(--dd-muted); }
+.dd-flag.is-note { color:var(--color-base-content); font-weight:700; }
 .dd-flag:first-child { border-top:1px solid var(--dd-border); }
 
 /* Progress scene: Intern 02, in a bandana, hauls the concrete DART slab left → right.
@@ -1164,8 +1166,8 @@ function renderFlags(flags) {
   host.textContent = '';
   (Array.isArray(flags) ? flags : []).forEach(f => {
     const row = document.createElement('div');
-    row.className = 'dd-flag';
-    row.textContent = typeof f === 'string' ? f : (f?.msg || '');   // 구버전 행은 {msg} 객체
+    row.className = 'dd-flag ' + (f?.level === 'note' ? 'is-note' : 'is-def');   // 문자열(구버전)은 정의 줄로 본다
+    row.textContent = typeof f === 'string' ? f : (f?.msg || '');
     if (row.textContent) host.append(row);
   });
 }
@@ -1228,12 +1230,13 @@ if (demo) {
         })
       },
       flags: [
-        'FAKE DEMO — Total debt = 단기차입금 + 유동성장기차입금 + 장기차입금 + 리스부채(유동) + 리스부채(비유동)',
-        'FAKE DEMO — Cash & CE = 현금및현금성자산 + 단기금융상품',
-        'FAKE DEMO — CapEx = 유형자산·무형자산 취득 + 사용권자산 취득(비현금)',
-        'FAKE DEMO — Net income · Book value = 지배주주 기준 (NCI 제외)',
-        'FAKE DEMO — 2021A: 자료 없음',
-        'FAKE DEMO — D&A: 2023A 미공시'
+        { level: 'def', msg: 'FAKE DEMO — Total debt = 단기차입금 + 유동성장기차입금 + 장기차입금 + 리스부채(유동) + 리스부채(비유동)' },
+        { level: 'def', msg: 'FAKE DEMO — Cash & CE = 현금및현금성자산 + 단기금융상품' },
+        { level: 'def', msg: 'FAKE DEMO — CapEx = 유형자산·무형자산 취득 + 사용권자산 취득(비현금)' },
+        { level: 'def', msg: 'FAKE DEMO — Net income · Book value = 지배주주 기준 (NCI 제외)' },
+        { level: 'note', msg: 'FAKE DEMO — 출처: 2022A–2023A 연결감사보고서 · 2024A–2025A 사업보고서' },
+        { level: 'note', msg: 'FAKE DEMO — 2021A: 자료 없음' },
+        { level: 'note', msg: 'FAKE DEMO — D&A: 2023A 미공시' }
       ] },
     { id: 'd2', company: 'SK하이닉스', year_from: 2022, year_to: 2025, ltm: null, status: 'running', progress: 42,
       summary: { unit: 'KRW bn', metrics: DEFAULT_METRICS } },
