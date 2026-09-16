@@ -1109,6 +1109,7 @@ function renderReport(content, stats, req) {
 
   const head = [company, `${dot(req.date_from)} ~ ${dot(req.date_to)}`];
   if (stats && stats.total != null) head.push(`Collected ${stats.total} / Selected ${(content || []).reduce((n, sec) => n + (sec.items || []).length, 0)}`);
+  if (stats?.partial) head.push(`Partial window (collected from ${stats.oldest})`);
   $('report-stats').textContent = head.join(' · ');
   $('report-pinned').textContent = req.must_include?.length
     ? 'Pinned issues: ' + req.must_include.join(', ') : '';
