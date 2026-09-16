@@ -170,6 +170,14 @@ input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margi
 .dd-custom { height:auto; padding:8px 0; gap:8px; border-bottom:0; }
 #mx-empty { padding:16px 4px; }
 
+/* Operating metrics: same 36px rows, but fenced off — these are disclosed at the issuer's discretion. */
+#ox-sec { border-top:2px solid var(--dd-border); }
+#ox-sec > .dd-mgroup:first-child { padding-top:8px; }
+.dd-onote { margin:0; padding:8px 4px; }
+.dd-osugg { padding:4px 4px 8px; font-style:italic;
+  color:color-mix(in srgb,var(--dd-muted) 55%,var(--color-base-100)); }
+.dd-osugg > div + div { padding-top:4px; }
+
 /* Register: one request per row, status on the same line, pin and delete at the right edge. */
 .dd-ritem { display:flex; align-items:center; padding-right:4px;
   border-bottom:1px solid var(--dd-border); }
@@ -207,6 +215,9 @@ table.dd-sum { border-collapse:collapse; width:100%; font-size:13px; font-varian
 .dd-sum :is(th,td):first-child { text-align:left; font-weight:500; }
 .dd-sum tbody th { font-weight:500; background:transparent; border-bottom:1px solid var(--dd-border); }
 .dd-sum tr.dd-ratio :is(th,td) { color:var(--dd-muted); font-style:italic; }
+.dd-sum tr.dd-ohead th { font-weight:600; color:var(--dd-muted); background:var(--dd-work);
+  border-top:1px solid var(--dd-border); }
+.dd-ounit { font-weight:400; color:var(--dd-muted); }
 .dd-sum tr.dd-sub th:first-child { font-weight:400; padding-left:16px; }
 .dd-sum tr.dd-drag-over :is(th,td) { border-top:2px solid var(--color-primary); }
 .dd-sum tr[draggable="true"] th:first-child { cursor:grab; }
@@ -444,6 +455,15 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
                            placeholder="Describe a metric, e.g. Net debt / (EBITDA − CapEx)">
                     <button type="button" id="mx-custom-add" class="btn btn-sm">Add</button>
                   </div>
+                </div>
+                <div id="ox-sec">
+                  <div class="dd-mgroup">Operating metrics · II. 사업의 내용</div>
+                  <p id="ox-note" class="dd-onote dd-muted">These are read out of <b>II. 사업의 내용</b>, which each company fills in at its own discretion — many publish none of them. Anything you pick that the filing does not carry comes back as an explicit “not disclosed” line, not a number.</p>
+                  <div id="ox-list"></div>
+                  <div class="dd-mrow dd-custom">
+                    <button type="button" id="ox-suggest" class="btn btn-sm">Suggest metrics for this company</button>
+                  </div>
+                  <div id="ox-sugg" class="hidden dd-osugg"></div>
                 </div>
                 <div class="dd-field">
                   <button type="button" id="tpl-toggle" class="btn btn-sm">Save as template</button>
@@ -757,6 +777,69 @@ $('mx-custom-add').onclick = () => {
 };
 $('mx-custom').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('mx-custom-add').click(); } };
 
+/* ---------- Operating metrics (II. 사업의 내용) ---------- */
+/* Ids are the contract with the worker; labels stay Korean, like the filings they come from.
+   These never enter `selected`: they have no formula and their rows come back from the run. */
+const OTHER_GROUPS = [
+  ['생산', [['capacity', '생산능력'], ['production', '생산실적'], ['utilization', '가동률']]],
+  ['시장', [['market_share', '시장점유율'], ['market_size', '시장규모']]],
+  ['사용자', [['mau', 'MAU'], ['dau', 'DAU'], ['arpu', 'ARPU'], ['paying_users', '유료 이용자'],
+    ['gmv', '거래액'], ['orders', '주문 수']]],
+  ['기타', [['asp', '판매단가'], ['backlog', '수주잔고'], ['new_orders', '신규 수주'],
+    ['export_ratio', '수출 비중'], ['headcount', '임직원 수'], ['rnd_ratio', 'R&D 비중'],
+    ['store_count', '점포 수'], ['subscribers', '가입자 수'], ['churn', '해지율'], ['take_rate', '수수료율']]]
+];
+const OTHER_BY_ID = new Map(OTHER_GROUPS.flatMap(([, list]) => list));
+let other = [], suggest = false;
+
+function renderOther() {
+  const host = $('ox-list');
+  host.textContent = '';
+  OTHER_GROUPS.forEach(([group, list]) => {
+    const head = document.createElement('div');
+    head.className = 'dd-mgroup';
+    head.textContent = group;
+    host.append(head);
+    list.forEach(([id, label]) => {
+      const row = document.createElement('div');
+      row.className = 'dd-mrow';
+      row.dataset.id = id;
+      const wrap = document.createElement('label');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.className = 'checkbox checkbox-sm';
+      cb.checked = other.includes(id);
+      cb.onchange = () => { other = cb.checked ? other.concat(id) : other.filter(x => x !== id); };
+      const name = document.createElement('span');
+      name.className = 'dd-mname';
+      name.textContent = label;
+      wrap.append(cb, name);
+      row.append(wrap);
+      host.append(row);
+    });
+  });
+}
+
+/* Suggestions are a Sonnet pass over the filing, so there is nothing to show until a run happens. */
+$('ox-suggest').onclick = () => {
+  suggest = true;
+  const box = $('ox-sugg');
+  box.textContent = '';
+  box.classList.remove('hidden');
+  const list = openReq()?.preview?.other?.suggested || [];
+  if (!list.length) {
+    box.textContent = 'Nothing to suggest yet — suggestions are read out of the company’s own filing, '
+      + 'so a report has to run first. This request will now ask for them, and they appear here once it finishes.';
+    return;
+  }
+  list.forEach(s => {
+    const line = document.createElement('div');
+    line.textContent = [s.label, s.section, s.table, s.periods ? s.periods + ' periods' : '', s.why]
+      .filter(Boolean).join(' · ');
+    box.append(line);
+  });
+};
+
 $('tpl-toggle').onclick = () => {
   $('tpl-save').classList.remove('hidden');
   $('ed-name').focus();
@@ -764,11 +847,15 @@ $('tpl-toggle').onclick = () => {
 $('ed-reset').onclick = () => {
   selected = DEFAULT_METRICS.slice();
   unit = 'KRW mm';
+  other = [];
+  suggest = false;
+  $('ox-sugg').classList.add('hidden');
   $('f-template').value = 'default';
   $('ed-name').value = '';
   edMsg(null);
   paintUnit();
   renderCatalog();
+  renderOther();
   renderSheet();
 };
 $('ed-save').onclick = async () => {
@@ -865,8 +952,11 @@ function requestPayload() {
   }
   const bad = validateSelection();
   if (bad) return { err: bad };
-  return { row: { email: me, company, year_from: from, year_to: to, ltm,
-    summary: { unit, metrics: selected.map(serialize) } } };
+  /* summary is jsonb; its CHECK only validates unit and metrics, so the extra keys ride along. */
+  const summary = { unit, metrics: selected.map(serialize) };
+  if (other.length) summary.other = other.slice();
+  if (suggest) summary.suggest = true;
+  return { row: { email: me, company, year_from: from, year_to: to, ltm, summary } };
 }
 
 $('req-form').onsubmit = async e => {
@@ -918,8 +1008,12 @@ function openRequest(r) {
   const m = r.summary?.metrics;
   if (Array.isArray(m) && m.length) selected = m.map(deserialize).filter(Boolean);
   if (UNITS[r.summary?.unit]) unit = r.summary.unit;
+  other = (Array.isArray(r.summary?.other) ? r.summary.other : []).filter(id => OTHER_BY_ID.has(id));
+  suggest = false;
+  $('ox-sugg').classList.add('hidden');
   paintUnit();
   renderCatalog();
+  renderOther();
   renderRequests();
   renderResult();
 }
@@ -1004,6 +1098,8 @@ function renderRequests() {
 
 /* ---------- The summary sheet (also the composer) ---------- */
 const nf = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+const nfo = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });   // operating metrics keep their own scale
+const otherCell = v => typeof v === 'number' && Number.isFinite(v) ? nfo.format(v) : '–';
 const fmtCell = (v, kind) => typeof v !== 'number' || !Number.isFinite(v) ? '–'
   : kind === 'pct' ? (v * 100).toFixed(1) + '%'
   : kind === 'multiple' ? v.toFixed(1) + 'x'
@@ -1043,7 +1139,7 @@ function renderResult() {
   toggle('res-error', !!r && r.status === 'error');
   toggle('dl-btn', !!r?.xlsx_path);
   renderSheet();
-  renderFlags(r?.flags);
+  renderFlags(r?.flags, r?.preview?.other?.unavailable);
 }
 
 let dragFrom = null;
@@ -1091,7 +1187,6 @@ function renderSheet() {
     td.textContent = 'No metrics yet. Add some from Add Metrics.';
     tr.append(td);
     body.append(tr);
-    return;
   }
 
   selected.forEach((entry, i) => {
@@ -1159,9 +1254,48 @@ function renderSheet() {
     tr.append(ctrlCell);
     body.append(tr);
   });
+
+  otherRows(periods, r?.preview?.other);
 }
 
-function renderFlags(flags) {
+/* preview.other.metrics: results, not composer rows — each carries its own unit, so the unit
+   dropdown never touches them, and periods are matched by label (the two lists can differ). */
+function otherRows(periods, o) {
+  const list = Array.isArray(o?.metrics) ? o.metrics : [];
+  if (!list.length) return;
+  const body = $('res-body');
+  const at = periods.map(p => (o.periods || []).indexOf(p));
+  const head = document.createElement('tr');
+  head.className = 'dd-ohead';
+  const headCell = document.createElement('th');
+  headCell.scope = 'colgroup';
+  headCell.colSpan = periods.length + 2;
+  headCell.textContent = 'Operating metrics · II. 사업의 내용';
+  head.append(headCell);
+  body.append(head);
+  list.forEach(m => {
+    const tr = document.createElement('tr');
+    const label = document.createElement('th');
+    label.scope = 'row';
+    label.textContent = m.label || m.id || '';
+    if (m.unit_text) {
+      const u = document.createElement('span');
+      u.className = 'dd-ounit';
+      u.textContent = ' (' + m.unit_text + ')';
+      label.append(u);
+    }
+    tr.append(label);
+    periods.forEach((_, j) => {
+      const td = document.createElement('td');
+      td.textContent = otherCell(m.values?.[at[j]]);
+      tr.append(td);
+    });
+    tr.append(document.createElement('td'));
+    body.append(tr);
+  });
+}
+
+function renderFlags(flags, unavailable) {
   const host = $('res-flags');
   host.textContent = '';
   (Array.isArray(flags) ? flags : []).forEach(f => {
@@ -1169,6 +1303,15 @@ function renderFlags(flags) {
     row.className = 'dd-flag ' + (f?.level === 'note' ? 'is-note' : 'is-def');   // 문자열(구버전)은 정의 줄로 본다
     row.textContent = typeof f === 'string' ? f : (f?.msg || '');
     if (row.textContent) host.append(row);
+  });
+  /* Requested but not in the filing. Informative, not an error, so it sits with the definitions. */
+  (Array.isArray(unavailable) ? unavailable : []).forEach(u => {
+    const name = u?.label || u?.id;
+    if (!name) return;
+    const row = document.createElement('div');
+    row.className = 'dd-flag is-def';
+    row.textContent = name + ': not disclosed' + (u.why ? ' — ' + u.why : '');
+    host.append(row);
   });
 }
 
@@ -1183,6 +1326,7 @@ $('dl-btn').onclick = async () => {
 
 paintUnit();
 renderCatalog();
+renderOther();
 renderResult();
 
 /* ---------- Auth: the session is set on the home page and shared through localStorage ---------- */
@@ -1219,7 +1363,8 @@ if (demo) {
   reqs = [
     { id: 'd1', company: '삼성전자', year_from: 2021, year_to: 2025, ltm: '1H26', status: 'done',
       xlsx_path: 'd1/samsung_2021-1H26.xlsx', progress: 100,
-      summary: { unit: 'KRW mm', metrics: demoMetrics.map(serialize) },
+      summary: { unit: 'KRW mm', metrics: demoMetrics.map(serialize),
+        other: ['capacity', 'utilization', 'market_share', 'mau', 'backlog'], suggest: true },
       preview: {
         periods: ['2021A', '2022A', '2023A', '2024A', '2025A', 'LTM 1H26'],
         rows: demoMetrics.filter(e => typeof e === 'string').map((id, i) => {
@@ -1227,7 +1372,28 @@ if (demo) {
           const values = fakeValues(m, i);
           if (id === 'da') values[2] = null;
           return { id: m.id, label: m.row, kind: m.kind, fmt: m.kind === 'pct' ? '0.0%' : m.kind === 'multiple' ? '0.0x' : '#,##0', values };
-        })
+        }),
+        other: {
+          periods: ['2021A', '2022A', '2023A', '2024A', '2025A', 'LTM 1H26'],
+          metrics: [
+            { id: 'capacity', label: 'FAKE DEMO — 생산능력(온산·아연)', category: 'production',
+              unit_text: '톤', values: [650000, 650000, 660000, 660000, 680000, 340000] },
+            { id: 'utilization', label: 'FAKE DEMO — 가동률(온산)', category: 'production',
+              unit_text: '%', values: [92.1, 94.3, 88.7, null, 93.5, 90.4] },
+            { id: 'market_share', label: 'FAKE DEMO — 시장점유율(국내·수량 기준)', category: 'market',
+              unit_text: '%', values: [31.2, 30.8, 29.9, 31.5, 32.1, null] }
+          ],
+          unavailable: [
+            { id: 'mau', label: 'MAU', why: 'FAKE DEMO — 플랫폼 지표라 사업의 내용 전 절에 없음' },
+            { id: 'backlog', label: '수주잔고', why: 'FAKE DEMO — 4. 매출 및 수주상황에 수주 표가 없음' }
+          ],
+          suggested: [
+            { label: 'FAKE DEMO — 아연 평균 판매단가', section: 'II.2', table: '주요 제품의 가격변동추이',
+              periods: 3, why: '매출 변동을 설명하는 단가 표가 3개년 실려 있다' },
+            { label: 'FAKE DEMO — 온산제련소 연간 조업일수', section: 'II.3', table: '생산능력의 산출근거',
+              periods: 3, why: '가동률 산출 근거' }
+          ]
+        }
       },
       flags: [
         { level: 'def', msg: 'FAKE DEMO — Total debt = 단기차입금 + 유동성장기차입금 + 장기차입금 + 리스부채(유동) + 리스부채(비유동)' },
